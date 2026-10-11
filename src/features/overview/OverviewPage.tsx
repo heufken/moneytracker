@@ -16,6 +16,7 @@ import { monthRange, todayISO } from "../../lib/dates";
 import { formatMoney } from "../../lib/money";
 import { monthTotals, monthlyFlow, spendingByCategory } from "../../lib/totals";
 import { cn } from "../../lib/utils";
+import { useTouchDevice } from "../../lib/use-touch-device";
 
 const MONTHS = [
   "January", "February", "March", "April", "May", "June",
@@ -26,6 +27,7 @@ const MONTHS_SHORT = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "S
 export function OverviewPage() {
   const [month, setMonth] = useState(() => todayISO().slice(0, 7));
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const isTouch = useTouchDevice();
   const [categories, setCategories] = useState<Category[]>([]);
   const [currency, setCurrency] = useState("IDR");
 
@@ -111,7 +113,7 @@ export function OverviewPage() {
               <XAxis type="number" tick={{ fontSize: 12, fill: "var(--color-muted-foreground)" }} tickFormatter={(v: number) => formatMoney(v, currency)} />
               <YAxis type="category" dataKey="name" width={90} tick={{ fontSize: 12, fill: "var(--color-foreground)" }} />
               <Tooltip
-                cursor={{ fill: "var(--color-muted)", opacity: 0.5 }}
+                trigger={isTouch ? "click" : "hover"}
                 formatter={(v) => [formatMoney(Number(v), currency), "Spent"]}
                 contentStyle={{
                   background: "var(--color-card)",
@@ -132,7 +134,7 @@ export function OverviewPage() {
       </section>
 
       {/* 6-month income vs expense */}
-      <SixMonthChart month={month} currency={currency} />
+      <SixMonthChart month={month} currency={currency} isTouch={isTouch} />
     </div>
   );
 }
@@ -150,7 +152,7 @@ function SummaryCard({ label, amount, tone }: { label: string; amount: number; t
   );
 }
 
-function SixMonthChart({ month, currency }: { month: string; currency: string }) {
+function SixMonthChart({ month, currency, isTouch }: { month: string; currency: string; isTouch: boolean }) {
   const [flow, setFlow] = useState<{ month: string; income: number; expense: number }[]>([]);
 
   useEffect(() => {
@@ -186,6 +188,7 @@ function SixMonthChart({ month, currency }: { month: string; currency: string })
             width={44}
           />
           <Tooltip
+            trigger={isTouch ? "click" : "hover"}
             cursor={{ fill: "var(--color-muted)", opacity: 0.5 }}
             formatter={(v, name) => [formatMoney(Number(v), currency), String(name)]}
             contentStyle={{
