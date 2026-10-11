@@ -1,6 +1,7 @@
 import { HashRouter, Route, Routes, Outlet } from "react-router-dom";
 import { BottomNav } from "./components/layout/BottomNav";
 import { TransactionsPage } from "./features/transactions/TransactionsPage";
+import { SettingsPage } from "./features/settings/SettingsPage";
 
 function Layout() {
   return (
@@ -15,9 +16,6 @@ function OverviewPage() {
   return <h1 className="font-display text-2xl font-bold">Overview</h1>;
 }
 
-function SettingsPage() {
-  return <h1 className="font-display text-2xl font-bold">Settings</h1>;
-}
 
 export default function App() {
   return (

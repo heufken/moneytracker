@@ -3,7 +3,7 @@ import { Button } from "../../components/ui/button";
 import { formatMoney, parseMoney } from "../../lib/money";
 import { todayISO } from "../../lib/dates";
 import { cn } from "../../lib/utils";
-import { listCategories, addTransaction, updateTransaction } from "../../db/api";
+import { listCategories, addTransaction, updateTransaction, getSetting } from "../../db/api";
 import type { Category, Transaction } from "../../db/types";
 import { transactionFormSchema, type TransactionFormValues } from "./schema";
 
@@ -26,11 +26,13 @@ const EMPTY: TransactionFormValues = {
 
 export function TransactionForm({ transaction, initialCategoryId, onDone, onCancel }: Props) {
   const [categories, setCategories] = useState<Category[]>([]);
+  const [currency, setCurrency] = useState("IDR");
   const [values, setValues] = useState<TransactionFormValues>(() =>
     transaction
       ? {
           type: transaction.type,
-          amount: String(transaction.amount),
+          // display prefill grouped like the app formats it
+          amount: formatMoney(transaction.amount).replace(/^[A-Za-z]+\s/, ""),
           categoryId: transaction.categoryId,
           date: transaction.date,
           note: transaction.note ?? "",
@@ -38,10 +40,18 @@ export function TransactionForm({ transaction, initialCategoryId, onDone, onCanc
       : { ...EMPTY, categoryId: initialCategoryId ?? "" },
   );
   const [errors, setErrors] = useState<Partial<Record<keyof TransactionFormValues, string>>>({});
-  const currency = "IDR"; // single-currency in v1; settings wiring comes with Settings page
 
   useEffect(() => {
-    listCategories().then(setCategories);
+    let cancelled = false;
+    listCategories().then((rows) => {
+      if (!cancelled) setCategories(rows);
+    });
+    getSetting("currency").then((v) => {
+      if (!cancelled && v) setCurrency(v);
+    });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const visibleCategories = categories.filter((c) => c.type === values.type);
