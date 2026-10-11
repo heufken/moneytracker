@@ -2,6 +2,7 @@ import { HashRouter, Route, Routes, Outlet } from "react-router-dom";
 import { BottomNav } from "./components/layout/BottomNav";
 import { TransactionsPage } from "./features/transactions/TransactionsPage";
 import { SettingsPage } from "./features/settings/SettingsPage";
+import { OverviewPage } from "./features/overview/OverviewPage";
 
 function Layout() {
   return (
@@ -10,10 +11,6 @@ function Layout() {
       <BottomNav />
     </div>
   );
-}
-
-function OverviewPage() {
-  return <h1 className="font-display text-2xl font-bold">Overview</h1>;
 }
 
 
