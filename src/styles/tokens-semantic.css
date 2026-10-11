@@ -1,0 +1,36 @@
+/* Semantic tokens: purpose aliases. Dark mode overrides these only. */
+:root {
+  --color-background: var(--paper-0);
+  --color-foreground: var(--ink);
+
+  --color-card: var(--paper-1);
+  --color-card-foreground: var(--ink);
+
+  --color-primary: var(--yellow-400);
+  --color-primary-foreground: var(--ink);
+
+  --color-secondary: var(--paper-1);
+  --color-secondary-foreground: var(--ink);
+
+  --color-muted: var(--paper-0);
+  --color-muted-foreground: #57534E; /* 4.6:1 on paper-1 */
+
+  --color-accent: var(--blue-400);
+  --color-accent-foreground: var(--ink);
+
+  --color-income: var(--green-400);
+  --color-income-foreground: var(--ink);
+  --color-expense: var(--red-400);
+  --color-expense-foreground: var(--ink);
+
+  --color-destructive: var(--red-400);
+  --color-destructive-foreground: var(--ink);
+
+  --color-border: var(--ink);
+  --color-ring: var(--ink);
+  --color-shadow: var(--ink);
+
+  --spacing-component: var(--space-4);
+  --spacing-section: var(--space-6);
+  --spacing-page: var(--space-4);
+}

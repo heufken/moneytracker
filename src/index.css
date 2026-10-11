@@ -1,0 +1,82 @@
+@import "@fontsource/lexend-mega/700.css";
+@import "@fontsource/lexend-mega/800.css";
+@import "@fontsource-variable/public-sans";
+@import "tailwindcss";
+
+@import "./styles/tokens-primitives.css";
+@import "./styles/tokens-semantic.css";
+@import "./styles/tokens-dark.css";
+@import "./styles/tokens-component.css";
+
+/*
+ * Tailwind v4: map semantic tokens into theme utilities (shadcn pattern).
+ * Components use bg-background, text-foreground, border-border, etc.
+ */
+@theme inline {
+  --color-background: var(--color-background);
+  --color-foreground: var(--color-foreground);
+  --color-card: var(--color-card);
+  --color-card-foreground: var(--color-card-foreground);
+  --color-primary: var(--color-primary);
+  --color-primary-foreground: var(--color-primary-foreground);
+  --color-secondary: var(--color-secondary);
+  --color-secondary-foreground: var(--color-secondary-foreground);
+  --color-muted: var(--color-muted);
+  --color-muted-foreground: var(--color-muted-foreground);
+  --color-accent: var(--color-accent);
+  --color-accent-foreground: var(--color-accent-foreground);
+  --color-income: var(--color-income);
+  --color-income-foreground: var(--color-income-foreground);
+  --color-expense: var(--color-expense);
+  --color-expense-foreground: var(--color-expense-foreground);
+  --color-destructive: var(--color-destructive);
+  --color-destructive-foreground: var(--color-destructive-foreground);
+  --color-border: var(--color-border);
+  --color-ring: var(--color-ring);
+  --color-shadow: var(--color-shadow);
+
+  --font-display: var(--font-display);
+  --font-sans: var(--font-sans);
+
+  --radius-none: var(--radius-none);
+  --radius-sm: var(--radius-sm);
+  --radius-pill: var(--radius-pill);
+
+  --shadow-hard: var(--shadow-sm);
+  --shadow-hard-md: var(--shadow-md);
+  --shadow-hard-lg: var(--shadow-lg);
+}
+
+@layer base {
+  html {
+    font-family: var(--font-sans);
+    font-size: 16px;
+  }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Focus contract (DESIGN_SYSTEM §9): 3px ring, 2px offset, everywhere. */
+  :focus-visible {
+    outline: var(--focus-outline);
+    outline-offset: var(--focus-outline-offset);
+  }
+
+  /* Amounts are data: tabular figures wherever money renders. */
+  .tnum {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    transform: none !important;
+  }
+}

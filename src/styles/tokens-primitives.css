@@ -1,0 +1,56 @@
+/* Primitive tokens: raw values only. Never referenced from components. */
+:root {
+  /* paper + ink */
+  --paper-0: #FFF8E7;
+  --paper-1: #FFFFFF;
+  --ink: #0A0A0A;
+
+  /* pop colors */
+  --yellow-400: #FFD02F;
+  --blue-400: #4D9DE0;
+  --green-400: #3DDC97;
+  --red-400: #FF5252;
+  --purple-400: #9B5DE5;
+  --pink-400: #FF99C8;
+  --orange-400: #FF9F1C;
+  --teal-400: #2EC4B6;
+
+  /* spacing (4px base) */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+
+  /* borders */
+  --border-width-1: 2px;
+  --border-width-2: 3px;
+
+  /* radius */
+  --radius-none: 0px;
+  --radius-sm: 4px;
+  --radius-pill: 9999px;
+
+  /* shadows: hard offsets only, share border color */
+  --shadow-sm: 3px 3px 0 0 var(--ink);
+  --shadow-md: 5px 5px 0 0 var(--ink);
+  --shadow-lg: 8px 8px 0 0 var(--ink);
+
+  /* motion */
+  --duration-fast: 80ms;
+  --duration-base: 140ms;
+  --easing: ease-out;
+
+  /* typography */
+  --font-display: "Lexend Mega", "Arial Black", sans-serif;
+  --font-sans: "Public Sans Variable", system-ui, sans-serif;
+
+  --text-hero: 40px;
+  --text-h1: 24px;
+  --text-h2: 18px;
+  --text-sm: 14px;
+  --text-xs: 12px;
+}

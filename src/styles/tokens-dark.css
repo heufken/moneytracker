@@ -1,0 +1,20 @@
+/* Dark mode: semantic overrides only. Primitives unchanged. */
+.dark {
+  --color-background: #17150F;               /* warm near-black */
+  --color-foreground: #F5F0E6;
+  --color-card: #221F17;
+  --color-card-foreground: #F5F0E6;
+  --color-primary: #FFD02F;                  /* pop colors stay */
+  --color-primary-foreground: #0A0A0A;       /* ink on yellow, 10:1 */
+  --color-secondary: #221F17;
+  --color-secondary-foreground: #F5F0E6;
+  --color-muted: #17150F;
+  --color-muted-foreground: #A8A29E;
+  --color-border: #F5F0E6;                   /* borders flip to light */
+  --color-ring: #F5F0E6;
+  --color-shadow: #F5F0E6;                   /* shadows flip to light */
+  --color-income: #3DDC97;
+  --color-expense: #FF6B6B;
+  --color-destructive: #FF6B6B;
+  --color-destructive-foreground: #0A0A0A;
+}
