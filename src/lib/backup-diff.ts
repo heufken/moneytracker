@@ -8,6 +8,7 @@ export interface TableDiff {
 
 export interface BackupDiff {
   categories: TableDiff;
+  wallets: TableDiff;
   transactions: TableDiff;
   /** Net change in stored integer amounts, income minus expense. */
   netChange: number;
@@ -42,6 +43,7 @@ export function diffBackup(current: BackupData, incoming: BackupData): BackupDif
     );
   return {
     categories: diffTable(current.categories, incoming.categories),
+    wallets: diffTable(current.wallets ?? [], incoming.wallets ?? []),
     transactions: diffTable(current.transactions, incoming.transactions),
     netChange: net(incoming) - net(current),
   };

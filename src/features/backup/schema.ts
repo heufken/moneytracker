@@ -17,12 +17,20 @@ const categorySchema = z.object({
   ]),
 });
 
+const walletSchema = z.object({
+  id: z.string().min(1),
+  name: z.string().min(1),
+  // Money stays integer, may be negative (overdraft).
+  initialBalance: z.number().int(),
+});
+
 const transactionSchema = z.object({
   id: z.string().min(1),
   type: z.enum(["income", "expense"]),
   // Money stays integer: reject floats and non-integers outright.
   amount: z.number().int().positive(),
   categoryId: z.string().min(1),
+  walletId: z.string().optional(),
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Expected YYYY-MM-DD"),
   note: z.string().optional(),
   createdAt: z.number(),
@@ -33,6 +41,8 @@ const backupDataSchema = z.object({
   categories: z.array(categorySchema),
   transactions: z.array(transactionSchema),
   settings: z.array(z.object({ key: z.string().min(1), value: z.string() })),
+  // Optional so pre-wallet export files (v1, no wallets) still import.
+  wallets: z.array(walletSchema).optional(),
 });
 
 export const backupFileSchema = z.object({

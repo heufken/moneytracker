@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { Moon, Sun } from "lucide-react";
 import { CategoriesManager } from "../categories/CategoriesManager";
-import { getSetting, setSetting } from "../../db/api";
+import { WalletsManager } from "../wallets/WalletsManager";
 import { BackupSection } from "../backup/BackupSection";
+import { getSetting, setSetting } from "../../db/api";
 import { cn } from "../../lib/utils";
 
 const CURRENCIES = ["IDR", "USD", "EUR", "SGD", "JPY"];
@@ -76,6 +77,7 @@ export function SettingsPage() {
         </button>
       </section>
       <CategoriesManager />
+      <WalletsManager />
       <BackupSection />
     </div>
   );

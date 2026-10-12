@@ -78,6 +78,7 @@ function ImportConfirmDialog({ open, diff, onConfirm, onCancel }: ImportDialogPr
         <tbody>
           <DiffTable title="Transactions" diff={diff.transactions} />
           <DiffTable title="Categories" diff={diff.categories} />
+          <DiffTable title="Wallets" diff={diff.wallets} />
         </tbody>
       </table>
       <p className="mb-4 text-sm">
@@ -261,7 +262,7 @@ export function BackupSection() {
                     </span>
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    {b.data.transactions.length} transactions · {b.data.categories.length} categories
+                    {b.data.transactions.length} transactions · {b.data.categories.length} categories · {(b.data.wallets ?? []).length} wallets
                   </p>
                 </div>
                 <Button variant="ghost" onClick={() => setRestoreTarget(b)}>

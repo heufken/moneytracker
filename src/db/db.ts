@@ -1,9 +1,10 @@
 import Dexie, { type EntityTable } from "dexie";
-import type { Backup, Category, Setting, Transaction } from "./types";
+import type { Backup, Category, Setting, Transaction, Wallet } from "./types";
 
 export class MoneyTrackerDB extends Dexie {
   categories!: EntityTable<Category, "id">;
   transactions!: EntityTable<Transaction, "id">;
+  wallets!: EntityTable<Wallet, "id">;
   settings!: EntityTable<Setting, "key">;
   backups!: EntityTable<Backup, "id">;
 
@@ -18,6 +19,12 @@ export class MoneyTrackerDB extends Dexie {
     // access via src/db). Additive — existing data upgrades in place.
     this.version(2).stores({
       backups: "id, createdAt",
+    });
+    // v3: wallets (cash, bank, e-wallet, crypto) + walletId tag on
+    // transactions. Additive — old data upgrades in place, walletId optional.
+    this.version(3).stores({
+      wallets: "id, name",
+      transactions: "id, date, type, categoryId, walletId",
     });
   }
 }

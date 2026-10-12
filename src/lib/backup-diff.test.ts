@@ -71,4 +71,17 @@ describe("diffBackup", () => {
     // Removing a 100 expense raises net worth by 100.
     expect(diff.netChange).toBe(100);
   });
+
+  it("counts wallet changes and tolerates pre-wallet data without wallets", () => {
+    const current = data([], []);
+    current.wallets = [{ id: "wal-a", name: "Cash", initialBalance: 100 }];
+    const incoming = data([], []);
+    incoming.wallets = [{ id: "wal-a", name: "Cash", initialBalance: 200 }];
+    const diff = diffBackup(current, incoming);
+    expect(diff.wallets).toEqual({ added: 0, changed: 1, removed: 0 });
+
+    const legacy = data([], []);
+    expect(diffBackup(current, legacy).wallets.removed).toBe(1);
+    expect(diffBackup(legacy, legacy).wallets).toEqual({ added: 0, changed: 0, removed: 0 });
+  });
 });

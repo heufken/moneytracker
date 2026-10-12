@@ -1,6 +1,6 @@
 // All database access lives here (AGENTS.md). Components never call Dexie directly.
 import { db } from "./db";
-import type { Backup, BackupData, Category, Setting, Transaction } from "./types";
+import type { Backup, BackupData, Category, Setting, Transaction, Wallet } from "./types";
 
 // ---------- ids ----------
 
@@ -41,6 +41,48 @@ export async function deleteCategory(
   await db.categories.delete(categoryId);
 }
 
+// ---------- wallets ----------
+
+export function listWallets(): Promise<Wallet[]> {
+  return db.wallets.toArray();
+}
+
+export async function saveWallet(wallet: Wallet): Promise<void> {
+  await db.wallets.put(wallet);
+}
+
+/** Count transactions referencing a wallet — used to guard deletion. */
+export function countTransactionsByWallet(walletId: string): Promise<number> {
+  return db.transactions.where("walletId").equals(walletId).count();
+}
+
+export async function deleteWallet(
+  walletId: string,
+  opts: { force?: boolean } = {},
+): Promise<void> {
+  const count = await countTransactionsByWallet(walletId);
+  if (count > 0 && !opts.force) {
+    throw new Error(
+      `Wallet has ${count} transaction(s). Reassign or confirm before deleting.`,
+    );
+  }
+  await db.transaction("rw", [db.wallets, db.transactions], async () => {
+    await db.wallets.delete(walletId);
+    // Force-delete keeps transactions; drop the dangling wallet tag.
+    await db.transactions.where("walletId").equals(walletId).modify({ walletId: undefined });
+  });
+}
+
+/** Current balance = opening balance + income − expense for the wallet. */
+export async function walletBalance(walletId: string): Promise<number> {
+  const wallet = await db.wallets.get(walletId);
+  if (!wallet) throw new Error(`No wallet with id ${walletId}`);
+  const txns = await db.transactions.where("walletId").equals(walletId).toArray();
+  let balance = wallet.initialBalance;
+  for (const t of txns) balance += t.type === "income" ? t.amount : -t.amount;
+  return balance;
+}
+
 // ---------- transactions ----------
 
 export interface TransactionFilters {
@@ -79,6 +121,7 @@ export interface NewTransactionInput {
   type: Transaction["type"];
   amount: number;
   categoryId: string;
+  walletId?: string;
   date: string;
   note?: string;
 }
@@ -124,12 +167,13 @@ export const BACKUP_KEEP = 3;
 
 /** Read all user tables: the export payload and pre-import snapshots. */
 export async function readAllData(): Promise<BackupData> {
-  const [categories, transactions, settings] = await Promise.all([
+  const [categories, transactions, wallets, settings] = await Promise.all([
     db.categories.toArray(),
     db.transactions.toArray(),
+    db.wallets.toArray(),
     db.settings.toArray(),
   ]);
-  return { categories, transactions, settings };
+  return { categories, transactions, wallets, settings };
 }
 
 /**
@@ -142,7 +186,7 @@ export async function readAllData(): Promise<BackupData> {
 export async function replaceAllData(data: BackupData, label: string): Promise<void> {
   await db.transaction(
     "rw",
-    [db.categories, db.transactions, db.settings, db.backups],
+    [db.categories, db.transactions, db.wallets, db.settings, db.backups],
     async () => {
       const current = await readAllData();
       const latest = (await listBackups())[0];
@@ -154,10 +198,11 @@ export async function replaceAllData(data: BackupData, label: string): Promise<v
         createdAt: Math.max(Date.now(), (latest?.createdAt ?? 0) + 1),
         data: current,
       });
-      await Promise.all([db.categories.clear(), db.transactions.clear(), db.settings.clear()]);
+      await Promise.all([db.categories.clear(), db.transactions.clear(), db.wallets.clear(), db.settings.clear()]);
       await Promise.all([
         db.categories.bulkPut(data.categories),
         db.transactions.bulkPut(data.transactions),
+        db.wallets.bulkPut(data.wallets ?? []),
         db.settings.bulkPut(data.settings),
       ]);
       const stale = (await listBackups()).slice(BACKUP_KEEP).map((b) => b.id);
@@ -177,4 +222,4 @@ export async function restoreBackup(id: string): Promise<void> {
   await replaceAllData(backup.data, "before restore");
 }
 
-export type { Backup, BackupData, Category, Setting, Transaction };
+export type { Backup, BackupData, Category, Setting, Transaction, Wallet };

@@ -94,6 +94,71 @@ describe("transactions", () => {
   });
 });
 
+describe("wallets", () => {
+  it("saves, lists, computes balance with opening + income − expense", async () => {
+    await api.saveWallet({ id: "wal-cash", name: "Cash", initialBalance: 100000 });
+    await api.addTransaction({
+      type: "income",
+      amount: 50000,
+      categoryId: "cat-salary",
+      walletId: "wal-cash",
+      date: "2026-10-01",
+    });
+    await api.addTransaction({
+      type: "expense",
+      amount: 20000,
+      categoryId: "cat-food",
+      walletId: "wal-cash",
+      date: "2026-10-02",
+    });
+    expect(await api.listWallets()).toEqual([
+      { id: "wal-cash", name: "Cash", initialBalance: 100000 },
+    ]);
+    expect(await api.walletBalance("wal-cash")).toBe(130000);
+  });
+
+  it("wallet-less transactions leave balance at opening", async () => {
+    await api.saveWallet({ id: "wal-bank", name: "Bank", initialBalance: 500 });
+    await api.addTransaction({
+      type: "expense",
+      amount: 100,
+      categoryId: "cat-food",
+      date: "2026-10-01",
+    });
+    expect(await api.walletBalance("wal-bank")).toBe(500);
+  });
+
+  it("blocks deleting a wallet with transactions", async () => {
+    await api.saveWallet({ id: "wal-ew", name: "GoPay", initialBalance: 0 });
+    await api.addTransaction({
+      type: "expense",
+      amount: 100,
+      categoryId: "cat-food",
+      walletId: "wal-ew",
+      date: "2026-10-01",
+    });
+    await expect(api.deleteWallet("wal-ew")).rejects.toThrow("1 transaction");
+  });
+
+  it("force-deleting untags transactions but keeps them", async () => {
+    await api.saveWallet({ id: "wal-x", name: "X", initialBalance: 0 });
+    const t = await api.addTransaction({
+      type: "expense",
+      amount: 100,
+      categoryId: "cat-food",
+      walletId: "wal-x",
+      date: "2026-10-01",
+    });
+    await api.deleteWallet("wal-x", { force: true });
+    expect(await api.listWallets()).toHaveLength(0);
+    expect((await api.getTransaction(t.id))?.walletId).toBeUndefined();
+  });
+
+  it("walletBalance throws on unknown id", async () => {
+    await expect(api.walletBalance("nope")).rejects.toThrow("No wallet");
+  });
+});
+
 describe("settings", () => {
   it("roundtrips and overwrites", async () => {
     await api.setSetting("currency", "USD");

@@ -71,8 +71,10 @@ export function TransactionsPage() {
   const visibleCategories =
     typeFilter === "all" ? categories : categories.filter((c) => c.type === typeFilter);
 
-  // Last-used category = most recent transaction's (list is newest-first).
-  const lastCategoryId = transactions[0]?.categoryId;
+   // Last-used category = most recent transaction's (list is newest-first).
+   const lastCategoryId = transactions[0]?.categoryId;
+  // Same for wallet.
+  const lastWalletId = transactions[0]?.walletId;
 
   return (
     <div className="page-fade space-y-4">
@@ -183,8 +185,8 @@ export function TransactionsPage() {
         onClose={() => setFormOpen(false)}
       >
         <TransactionForm
-          transaction={editing ?? undefined}
-          initialCategoryId={editing ? undefined : lastCategoryId}
+           initialCategoryId={editing ? undefined : lastCategoryId}
+          initialWalletId={editing ? undefined : lastWalletId}
           onDone={() => {
             setFormOpen(false);
             void refresh();

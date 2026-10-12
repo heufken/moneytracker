@@ -3,8 +3,8 @@ import { Button } from "../../components/ui/button";
 import { formatMoney, parseMoney } from "../../lib/money";
 import { todayISO } from "../../lib/dates";
 import { cn } from "../../lib/utils";
-import { listCategories, addTransaction, updateTransaction, getSetting } from "../../db/api";
-import type { Category, Transaction } from "../../db/types";
+import { listCategories, listWallets, addTransaction, updateTransaction, getSetting } from "../../db/api";
+import type { Category, Transaction, Wallet } from "../../db/types";
 import { transactionFormSchema, type TransactionFormValues } from "./schema";
 
 interface Props {
@@ -12,6 +12,8 @@ interface Props {
   transaction?: Transaction;
   /** Last-used category per type, preselects the matching type's category. */
   initialCategoryId?: string;
+  /** Last-used wallet, preselects the wallet select. */
+  initialWalletId?: string;
   onDone: () => void;
   onCancel: () => void;
 }
@@ -20,12 +22,14 @@ const EMPTY: TransactionFormValues = {
   type: "expense",
   amount: "",
   categoryId: "",
+  walletId: "",
   date: todayISO(),
   note: "",
 };
 
-export function TransactionForm({ transaction, initialCategoryId, onDone, onCancel }: Props) {
+export function TransactionForm({ transaction, initialCategoryId, initialWalletId, onDone, onCancel }: Props) {
   const [categories, setCategories] = useState<Category[]>([]);
+  const [wallets, setWallets] = useState<Wallet[]>([]);
   const [currency, setCurrency] = useState("IDR");
   const [values, setValues] = useState<TransactionFormValues>(() =>
     transaction
@@ -34,10 +38,11 @@ export function TransactionForm({ transaction, initialCategoryId, onDone, onCanc
           // display prefill grouped like the app formats it
           amount: formatMoney(transaction.amount).replace(/^[A-Za-z]+\s/, ""),
           categoryId: transaction.categoryId,
+          walletId: transaction.walletId ?? "",
           date: transaction.date,
           note: transaction.note ?? "",
         }
-      : { ...EMPTY, categoryId: initialCategoryId ?? "" },
+      : { ...EMPTY, categoryId: initialCategoryId ?? "", walletId: initialWalletId ?? "" },
   );
   const [errors, setErrors] = useState<Partial<Record<keyof TransactionFormValues, string>>>({});
 
@@ -45,6 +50,9 @@ export function TransactionForm({ transaction, initialCategoryId, onDone, onCanc
     let cancelled = false;
     listCategories().then((rows) => {
       if (!cancelled) setCategories(rows);
+    });
+    listWallets().then((rows) => {
+      if (!cancelled) setWallets(rows);
     });
     getSetting("currency").then((v) => {
       if (!cancelled && v) setCurrency(v);
@@ -59,6 +67,7 @@ export function TransactionForm({ transaction, initialCategoryId, onDone, onCanc
   function set<K extends keyof TransactionFormValues>(key: K, value: TransactionFormValues[K]) {
     setValues((v) => ({ ...v, [key]: value }));
   }
+
   async function handleSubmit(e: SyntheticEvent) {
     e.preventDefault();
     const parsed = transactionFormSchema.safeParse(values);
@@ -73,11 +82,13 @@ export function TransactionForm({ transaction, initialCategoryId, onDone, onCanc
     }
     setErrors({});
     const amount = parseMoney(parsed.data.amount);
+    const walletId = parsed.data.walletId || undefined;
     if (transaction) {
       await updateTransaction(transaction.id, {
         type: parsed.data.type,
         amount,
         categoryId: parsed.data.categoryId,
+        walletId,
         date: parsed.data.date,
         note: parsed.data.note?.trim() || undefined,
       });
@@ -86,6 +97,7 @@ export function TransactionForm({ transaction, initialCategoryId, onDone, onCanc
         type: parsed.data.type,
         amount,
         categoryId: parsed.data.categoryId,
+        walletId,
         date: parsed.data.date,
         note: parsed.data.note?.trim() || undefined,
       });
@@ -181,6 +193,28 @@ export function TransactionForm({ transaction, initialCategoryId, onDone, onCanc
         </select>
         <div id="category-error">{err("categoryId")}</div>
       </div>
+
+      {/* wallet — hidden entirely when none exist (keeps the form short) */}
+      {wallets.length > 0 && (
+        <div>
+          <label htmlFor="wallet" className="mb-1 block text-xs font-semibold uppercase tracking-widest">
+            Wallet (optional)
+          </label>
+          <select
+            id="wallet"
+            value={values.walletId}
+            onChange={(e) => set("walletId", e.target.value)}
+            className="h-11 w-full rounded-none border-2 border-border bg-card px-3 text-base shadow-hard-sm focus:outline-3 focus:outline-ring focus:outline-offset-2"
+          >
+            <option value="">No wallet</option>
+            {wallets.map((w) => (
+              <option key={w.id} value={w.id}>
+                {w.name}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
 
       {/* date */}
       <div>

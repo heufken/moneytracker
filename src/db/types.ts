@@ -25,11 +25,21 @@ export interface Transaction {
   /** Integer, smallest currency unit. Never a float. */
   amount: number;
   categoryId: string;
+  /** Optional wallet tag. Missing = unassigned (pre-wallet data). */
+  walletId?: string;
   /** Local-time date string, `YYYY-MM-DD`. Never a Date or UTC timestamp. */
   date: string;
   note?: string;
   createdAt: number;
   updatedAt: number;
+}
+
+/** Where money sits: cash, bank app, e-wallet, crypto, etc. */
+export interface Wallet {
+  id: string;
+  name: string;
+  /** Integer, smallest currency unit. Balance when the wallet was created. */
+  initialBalance: number;
 }
 
 export interface Setting {
@@ -38,11 +48,12 @@ export interface Setting {
 }
 
 /** Full copy of all user tables — payload of exports and snapshots. */
-export interface BackupData {
-  categories: Category[];
-  transactions: Transaction[];
-  settings: Setting[];
-}
+ export interface BackupData {
+   categories: Category[];
+   transactions: Transaction[];
+  wallets?: Wallet[];
+   settings: Setting[];
+ }
 
 /** Automatic snapshot taken before every import or restore. Last 3 kept. */
 export interface Backup {

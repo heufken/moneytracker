@@ -81,4 +81,27 @@ describe("parseBackupFile", () => {
     delete good.data.transactions[0]!.note;
     expect(parseBackupFile(JSON.stringify(good)).ok).toBe(true);
   });
+
+  it("accepts pre-wallet files without wallets", () => {
+    const good = breakable();
+    expect(parseBackupFile(JSON.stringify(good)).ok).toBe(true);
+  });
+
+  it("accepts wallets with integer opening balances", () => {
+    const good = breakable() as unknown as {
+      version: number;
+      data: { wallets?: { id: string; name: string; initialBalance: number }[] };
+    };
+    good.data.wallets = [{ id: "wal-cash", name: "Cash", initialBalance: 25000 }];
+    expect(parseBackupFile(JSON.stringify(good)).ok).toBe(true);
+  });
+
+  it("rejects float wallet opening balances", () => {
+    const good = breakable() as unknown as {
+      version: number;
+      data: { wallets?: { id: string; name: string; initialBalance: number }[] };
+    };
+    good.data.wallets = [{ id: "wal-cash", name: "Cash", initialBalance: 25.5 }];
+    expect(parseBackupFile(JSON.stringify(good)).ok).toBe(false);
+  });
 });

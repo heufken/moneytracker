@@ -16,7 +16,12 @@ Just me, on one device (phone first, laptop second). No login.
    - total income, total expense, net
    - spending by category (chart)
    - income vs expense for the last 6 months (chart)
-5. **Backup**: export all data to JSON, import from JSON, export transactions to CSV.
+ 5. **Backup**: export all data to JSON, import from JSON, export transactions to CSV.
+6. **Wallets**: track where money sits (cash, bank app, e-wallet, crypto). Optional tag on
+   each transaction, opening balance per wallet, live balance = opening + income − expense.
+   Onboarding sheet on first run (empty db) offers common wallets; skippable, and wallets
+   are managed in Settings. Deleting a wallet keeps its transactions (tag removed) after
+   confirmation.
 
 ## Out of scope for v1
 Login or multiple users, cloud sync, bank sync or API integrations, multi-currency, budgets and goals, recurring transactions, receipts or attachments, notifications.
@@ -24,9 +29,10 @@ Login or multiple users, cloud sync, bank sync or API integrations, multi-curren
 
 ## Data model
 - **Category**: `id`, `name`, `type` (income | expense), `color`
-- **Transaction**: `id`, `type`, `amount` (integer, smallest currency unit), `categoryId`, `date` (`YYYY-MM-DD` string), `note`, `createdAt`, `updatedAt`
+- **Wallet**: `id`, `name`, `initialBalance` (integer, smallest currency unit). `Transaction.walletId` optional.
+- **Transaction**: `id`, `type`, `amount` (integer, smallest currency unit), `categoryId`, `walletId` (optional), `date` (`YYYY-MM-DD` string), `note`, `createdAt`, `updatedAt`
 - **Settings**: `currency` (default IDR)
-- **Backup snapshot**: `id`, `label`, `createdAt`, full copy of categories + transactions + settings. The newest 3 are kept automatically; one is taken before every import or restore.
+- **Backup snapshot**: `id`, `label`, `createdAt`, full copy of categories + transactions + wallets + settings. The newest 3 are kept automatically; one is taken before every import or restore. Import accepts older files without wallets.
 
 ## Import behavior
 - Importing replaces all data, but only after a diff preview (added / changed / removed per table, net money change) and explicit confirmation.
@@ -46,4 +52,4 @@ Login or multiple users, cloud sync, bank sync or API integrations, multi-curren
 
 ## Open questions
 - Should the overview support custom date ranges, or only whole months?
-- Do I want a "transfer between accounts" concept later (cash, bank, e-wallet)?
+- Wallet-to-wallet transfers: wallets exist, transfers do not. Record as expense + income pair meanwhile; a real transfer type is a v2 candidate.

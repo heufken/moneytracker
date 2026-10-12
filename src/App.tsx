@@ -1,18 +1,45 @@
+import { useEffect, useState } from "react";
 import { HashRouter, Route, Routes, Outlet } from "react-router-dom";
 import { BottomNav } from "./components/layout/BottomNav";
 import { TransactionsPage } from "./features/transactions/TransactionsPage";
 import { SettingsPage } from "./features/settings/SettingsPage";
 import { OverviewPage } from "./features/overview/OverviewPage";
+import { WalletOnboarding } from "./features/wallets/WalletOnboarding";
+import { getSetting, listTransactions, listWallets, setSetting } from "./db/api";
 
 function Layout() {
+  const [showOnboarding, setShowOnboarding] = useState(false);
+
+  useEffect(() => {
+    // First run = no transactions, no wallets (categories are seeded), and
+    // onboarding was never shown/skipped. Flag stops repeat dialogs for
+    // deliberate skippers even while the db stays empty.
+    let cancelled = false;
+    Promise.all([listTransactions(), listWallets(), getSetting("walletsOnboarded")]).then(
+      ([txns, wallets, onboarded]) => {
+        if (!cancelled)
+          setShowOnboarding(txns.length === 0 && wallets.length === 0 && onboarded !== "1");
+      },
+    );
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   return (
     <div className="mx-auto min-h-dvh max-w-lg px-[max(1rem,env(safe-area-inset-left))] pr-[max(1rem,env(safe-area-inset-right))] pb-[calc(6rem+env(safe-area-inset-bottom))] pt-[max(1.5rem,env(safe-area-inset-top))]">
       <Outlet />
       <BottomNav />
+      <WalletOnboarding
+        open={showOnboarding}
+        onDone={() => {
+          void setSetting("walletsOnboarded", "1");
+          setShowOnboarding(false);
+        }}
+      />
     </div>
   );
 }
-
 
 export default function App() {
   return (
