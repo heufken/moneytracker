@@ -15,15 +15,26 @@ interface DialogProps {
 export function Dialog({ open, title, destructive, onClose, children }: DialogProps) {
   const ref = useRef<HTMLDivElement>(null);
   const previouslyFocused = useRef<HTMLElement | null>(null);
+  // Parents pass fresh inline onClose on every render; holding it in a ref lets
+  // the open-effect below run once per `open` change instead of per keystroke.
+  const onCloseRef = useRef(onClose);
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
 
   useEffect(() => {
     if (!open) return;
-    previouslyFocused.current = document.activeElement as HTMLElement | null;
     const node = ref.current;
-    node?.querySelector<HTMLElement>("input, select, button")?.focus();
+    if (!node) return;
+    // Focus the first field once per open. Re-focusing on parent re-renders
+    // blurs the input mid-typing and collapses the Android keyboard.
+    if (!node.contains(document.activeElement)) {
+      previouslyFocused.current = document.activeElement as HTMLElement | null;
+      node.querySelector<HTMLElement>("input, select, button")?.focus();
+    }
 
     function onKeyDown(e: KeyboardEvent) {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape") onCloseRef.current();
       if (e.key === "Tab" && node) {
         const focusables = node.querySelectorAll<HTMLElement>(
           "input, select, textarea, button, [href]",
@@ -45,7 +56,7 @@ export function Dialog({ open, title, destructive, onClose, children }: DialogPr
       document.removeEventListener("keydown", onKeyDown);
       previouslyFocused.current?.focus();
     };
-  }, [open, onClose]);
+  }, [open]);
 
   if (!open) return null;
 
