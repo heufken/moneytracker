@@ -73,7 +73,7 @@ export function CategoryDialog({ open, category, onClose, onSaved }: CategoryDia
                 aria-pressed={values.type === t}
                 onClick={() => setValues((v) => ({ ...v, type: t }))}
                 className={cn(
-                  "h-11 rounded-sm border-2 border-border font-bold capitalize",
+                "h-11 rounded-sm border-2 border-border font-bold capitalize transition-colors duration-[140ms]",
                   values.type === t
                     ? t === "income"
                       ? "bg-income text-income-foreground shadow-hard"

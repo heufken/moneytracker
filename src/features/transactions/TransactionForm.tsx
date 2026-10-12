@@ -118,7 +118,7 @@ export function TransactionForm({ transaction, initialCategoryId, onDone, onCanc
                 setValues((v) => ({ ...v, type: t, categoryId: first?.id ?? "" }));
               }}
               className={cn(
-                "h-11 rounded-sm border-2 border-border font-bold capitalize",
+                "h-11 rounded-sm border-2 border-border font-bold capitalize transition-colors duration-[140ms]",
                 values.type === t
                   ? t === "income"
                     ? "bg-income text-income-foreground shadow-hard"

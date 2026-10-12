@@ -33,7 +33,7 @@ export function SettingsPage() {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="page-fade space-y-8">
       <h1 className="font-display text-2xl font-bold">Settings</h1>
 
       <section aria-label="Currency" className="space-y-2">

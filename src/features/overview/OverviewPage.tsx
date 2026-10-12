@@ -68,7 +68,7 @@ export function OverviewPage() {
   const label = `${MONTHS[m! - 1]} ${y}`;
 
   return (
-    <div className="space-y-6">
+    <div className="page-fade space-y-6">
       <h1 className="font-display text-2xl font-bold">Overview</h1>
 
       {/* month picker */}

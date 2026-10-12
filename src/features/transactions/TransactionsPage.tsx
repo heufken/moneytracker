@@ -75,7 +75,7 @@ export function TransactionsPage() {
   const lastCategoryId = transactions[0]?.categoryId;
 
   return (
-    <div className="space-y-4">
+    <div className="page-fade space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="font-display text-2xl font-bold">Transactions</h1>
         <Button
@@ -124,7 +124,7 @@ export function TransactionsPage() {
               setCategoryFilter("all");
             }}
             className={cn(
-              "min-h-[36px] shrink-0 snap-start rounded-pill border-2 border-border px-4 text-xs font-semibold uppercase tracking-widest",
+              "min-h-[36px] shrink-0 snap-start rounded-pill border-2 border-border px-4 text-xs font-semibold uppercase tracking-widest transition-colors duration-[140ms]",
               typeFilter === t ? "bg-primary text-primary-foreground shadow-hard" : "bg-card text-muted-foreground",
             )}
           >
@@ -140,7 +140,7 @@ export function TransactionsPage() {
           aria-pressed={categoryFilter === "all"}
           onClick={() => setCategoryFilter("all")}
           className={cn(
-            "min-h-[36px] shrink-0 snap-start rounded-pill border-2 border-border px-4 text-xs font-semibold uppercase tracking-widest",
+            "min-h-[36px] shrink-0 snap-start rounded-pill border-2 border-border px-4 text-xs font-semibold uppercase tracking-widest transition-colors duration-[140ms]",
             categoryFilter === "all" ? "bg-primary text-primary-foreground shadow-hard" : "bg-card text-muted-foreground",
           )}
         >
@@ -153,7 +153,7 @@ export function TransactionsPage() {
             aria-pressed={categoryFilter === c.id}
             onClick={() => setCategoryFilter(c.id)}
             className={cn(
-              "flex min-h-[36px] shrink-0 snap-start items-center gap-2 rounded-pill border-2 border-border px-4 text-xs font-semibold uppercase tracking-widest",
+              "flex min-h-[36px] shrink-0 snap-start items-center gap-2 rounded-pill border-2 border-border px-4 text-xs font-semibold uppercase tracking-widest transition-colors duration-[140ms]",
               categoryFilter === c.id ? "bg-primary text-primary-foreground shadow-hard" : "bg-card text-muted-foreground",
             )}
           >

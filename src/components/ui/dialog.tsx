@@ -51,7 +51,7 @@ export function Dialog({ open, title, destructive, onClose, children }: DialogPr
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/60 p-4"
+      className="dialog-backdrop fixed inset-0 z-50 flex items-center justify-center bg-foreground/60 p-4"
       onMouseDown={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
@@ -61,7 +61,7 @@ export function Dialog({ open, title, destructive, onClose, children }: DialogPr
         role="dialog"
         aria-modal="true"
         aria-label={title}
-        className="w-full max-w-[420px] border-3 border-border bg-card shadow-hard-lg"
+        className="dialog-card w-full max-w-[420px] border-3 border-border bg-card shadow-hard-lg"
       >
         <div
           className={cn(

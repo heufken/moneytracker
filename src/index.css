@@ -71,6 +71,37 @@
   }
 }
 
+@layer components {
+  /* Dialog: card + backdrop enter as one surface. Exit is instant (mount-conditioned). */
+  .dialog-backdrop {
+    transition: opacity var(--duration-slow) var(--ease-out);
+
+    @starting-style {
+      opacity: 0;
+    }
+  }
+
+  .dialog-card {
+    transition:
+      opacity var(--duration-slow) var(--ease-out),
+      transform var(--duration-slow) var(--ease-out);
+
+    @starting-style {
+      opacity: 0;
+      transform: scale(0.96);
+    }
+  }
+
+  /* Route pages: opacity-only bridge on tab change. */
+  .page-fade {
+    transition: opacity var(--duration-base) var(--ease-out);
+
+    @starting-style {
+      opacity: 0;
+    }
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
