@@ -1,10 +1,11 @@
 import Dexie, { type EntityTable } from "dexie";
-import type { Category, Setting, Transaction } from "./types";
+import type { Backup, Category, Setting, Transaction } from "./types";
 
 export class MoneyTrackerDB extends Dexie {
   categories!: EntityTable<Category, "id">;
   transactions!: EntityTable<Transaction, "id">;
   settings!: EntityTable<Setting, "key">;
+  backups!: EntityTable<Backup, "id">;
 
   constructor() {
     super("moneytracker");
@@ -12,6 +13,11 @@ export class MoneyTrackerDB extends Dexie {
       categories: "id, name, type",
       transactions: "id, date, type, categoryId",
       settings: "key",
+    });
+    // v2: backups table for automatic pre-import snapshots (AGENTS.md: all
+    // access via src/db). Additive — existing data upgrades in place.
+    this.version(2).stores({
+      backups: "id, createdAt",
     });
   }
 }

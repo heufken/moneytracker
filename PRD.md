@@ -26,6 +26,11 @@ Login or multiple users, cloud sync, bank sync or API integrations, multi-curren
 - **Category**: `id`, `name`, `type` (income | expense), `color`
 - **Transaction**: `id`, `type`, `amount` (integer, smallest currency unit), `categoryId`, `date` (`YYYY-MM-DD` string), `note`, `createdAt`, `updatedAt`
 - **Settings**: `currency` (default IDR)
+- **Backup snapshot**: `id`, `label`, `createdAt`, full copy of categories + transactions + settings. The newest 3 are kept automatically; one is taken before every import or restore.
+
+## Import behavior
+- Importing replaces all data, but only after a diff preview (added / changed / removed per table, net money change) and explicit confirmation.
+- Before any replace, current data is saved as a snapshot restorable from Settings.
 
 ## Non-functional requirements
 - Works offline and is installable on a phone home screen (PWA).

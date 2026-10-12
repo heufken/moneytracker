@@ -102,3 +102,64 @@ describe("settings", () => {
     expect(await api.getSetting("currency")).toBe("IDR");
   });
 });
+
+describe("backup", () => {
+  it("replaceAllData snapshots and replaces all tables", async () => {
+    const snapshot = await api.readAllData();
+    await api.replaceAllData(
+      {
+        categories: [{ id: "cat-x", name: "X", type: "expense", color: "red" }],
+        transactions: [
+          {
+            id: "txn-1",
+            type: "expense",
+            amount: 100,
+            categoryId: "cat-x",
+            date: "2026-10-01",
+            createdAt: 1,
+            updatedAt: 1,
+          },
+        ],
+        settings: [{ key: "currency", value: "USD" }],
+      },
+      "import test",
+    );
+
+    expect(await api.listTransactions()).toHaveLength(1);
+    expect(await api.getSetting("currency")).toBe("USD");
+
+    const backups = await api.listBackups();
+    expect(backups).toHaveLength(1);
+    expect(backups[0]!.label).toBe("import test");
+    expect(backups[0]!.data).toEqual(snapshot);
+  });
+
+  it("restoreBackup brings the old data back", async () => {
+    const before = await api.readAllData();
+    await api.replaceAllData(
+      { categories: [], transactions: [], settings: [] },
+      "wipe test",
+    );
+    expect(await api.listTransactions()).toHaveLength(0);
+
+    const backup = (await api.listBackups()).find((b) => b.label === "wipe test")!;
+    await api.restoreBackup(backup.id);
+    expect(await api.readAllData()).toEqual(before);
+  });
+
+  it("keeps only 3 newest snapshots", async () => {
+    for (let i = 0; i < 5; i++) {
+      await api.replaceAllData(
+        { categories: [], transactions: [], settings: [] },
+        `wipe ${i}`,
+      );
+    }
+    const backups = await api.listBackups();
+    expect(backups).toHaveLength(api.BACKUP_KEEP);
+    expect(backups.map((b) => b.label)).toEqual(["wipe 4", "wipe 3", "wipe 2"]);
+  });
+
+  it("restoreBackup throws on unknown id", async () => {
+    await expect(api.restoreBackup("nope")).rejects.toThrow("No backup");
+  });
+});

@@ -36,3 +36,18 @@ export interface Setting {
   key: string;
   value: string;
 }
+
+/** Full copy of all user tables — payload of exports and snapshots. */
+export interface BackupData {
+  categories: Category[];
+  transactions: Transaction[];
+  settings: Setting[];
+}
+
+/** Automatic snapshot taken before every import or restore. Last 3 kept. */
+export interface Backup {
+  id: string;
+  label: string;
+  createdAt: number;
+  data: BackupData;
+}

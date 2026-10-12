@@ -1,6 +1,6 @@
 // All database access lives here (AGENTS.md). Components never call Dexie directly.
 import { db } from "./db";
-import type { Category, Setting, Transaction } from "./types";
+import type { Backup, BackupData, Category, Setting, Transaction } from "./types";
 
 // ---------- ids ----------
 
@@ -117,4 +117,64 @@ export async function setSetting(key: string, value: string): Promise<void> {
   await db.settings.put({ key, value });
 }
 
-export type { Category, Setting, Transaction };
+// ---------- backup ----------
+
+/** Automatic snapshots kept before older ones are pruned. */
+export const BACKUP_KEEP = 3;
+
+/** Read all user tables: the export payload and pre-import snapshots. */
+export async function readAllData(): Promise<BackupData> {
+  const [categories, transactions, settings] = await Promise.all([
+    db.categories.toArray(),
+    db.transactions.toArray(),
+    db.settings.toArray(),
+  ]);
+  return { categories, transactions, settings };
+}
+
+/**
+ * Replace all user tables with `data`, saving current data as a labeled
+ * snapshot first. Snapshot, replace, and prune all run in one IndexedDB
+ * transaction: a crash mid-import rolls back everything, leaving the old
+ * data and snapshot list exactly as they were. Restores reuse this path,
+ * so the pre-restore state is snapshotted too.
+ */
+export async function replaceAllData(data: BackupData, label: string): Promise<void> {
+  await db.transaction(
+    "rw",
+    [db.categories, db.transactions, db.settings, db.backups],
+    async () => {
+      const current = await readAllData();
+      const latest = (await listBackups())[0];
+      await db.backups.put({
+        id: newId("backup"),
+        label,
+        // Date.now() repeats within a millisecond: bump past the newest
+        // snapshot so ordering and pruning never see ties.
+        createdAt: Math.max(Date.now(), (latest?.createdAt ?? 0) + 1),
+        data: current,
+      });
+      await Promise.all([db.categories.clear(), db.transactions.clear(), db.settings.clear()]);
+      await Promise.all([
+        db.categories.bulkPut(data.categories),
+        db.transactions.bulkPut(data.transactions),
+        db.settings.bulkPut(data.settings),
+      ]);
+      const stale = (await listBackups()).slice(BACKUP_KEEP).map((b) => b.id);
+      if (stale.length > 0) await db.backups.bulkDelete(stale);
+    },
+  );
+}
+
+/** Snapshots, newest first. */
+export function listBackups(): Promise<Backup[]> {
+  return db.backups.orderBy("createdAt").reverse().toArray();
+}
+
+export async function restoreBackup(id: string): Promise<void> {
+  const backup = await db.backups.get(id);
+  if (!backup) throw new Error(`No backup with id ${id}`);
+  await replaceAllData(backup.data, "before restore");
+}
+
+export type { Backup, BackupData, Category, Setting, Transaction };

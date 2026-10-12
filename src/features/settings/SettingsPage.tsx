@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Moon, Sun } from "lucide-react";
 import { CategoriesManager } from "../categories/CategoriesManager";
 import { getSetting, setSetting } from "../../db/api";
+import { BackupSection } from "../backup/BackupSection";
 import { cn } from "../../lib/utils";
 
 const CURRENCIES = ["IDR", "USD", "EUR", "SGD", "JPY"];
@@ -70,8 +71,8 @@ export function SettingsPage() {
           {dark ? "Dark mode" : "Light mode"}
         </button>
       </section>
-
       <CategoriesManager />
+      <BackupSection />
     </div>
   );
 }
