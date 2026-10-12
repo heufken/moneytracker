@@ -1,5 +1,6 @@
 /* Dark mode: semantic overrides only. Primitives unchanged. */
 .dark {
+  color-scheme: dark;
   --color-background: #17150F;               /* warm near-black */
   --color-foreground: #F5F0E6;
   --color-card: #221F17;

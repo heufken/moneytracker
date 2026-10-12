@@ -206,6 +206,7 @@ export function TransactionForm({ transaction, initialCategoryId, onDone, onCanc
         <input
           id="note"
           type="text"
+          enterKeyHint="done"
           value={values.note}
           onChange={(e) => set("note", e.target.value)}
           aria-describedby={errors.note ? "note-error" : undefined}

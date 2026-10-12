@@ -30,6 +30,10 @@ export function SettingsPage() {
     const next = !dark;
     setDark(next);
     document.documentElement.classList.toggle("dark", next);
+    // Theme-color drives the status bar; keep it in sync with the scheme.
+    document
+      .querySelector('meta[name="theme-color"]')
+      ?.setAttribute("content", next ? "#17150F" : "#FFF8E7");
   }
 
   return (

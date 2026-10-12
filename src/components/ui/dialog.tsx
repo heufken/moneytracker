@@ -79,7 +79,7 @@ export function Dialog({ open, title, destructive, onClose, children }: DialogPr
             <X aria-hidden className="size-5" />
           </button>
         </div>
-        <div className="max-h-[70vh] overflow-y-auto p-5">{children}</div>
+        <div className="max-h-[70dvh] overscroll-contain p-5">{children}</div>
       </div>
     </div>
   );

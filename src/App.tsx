@@ -6,7 +6,7 @@ import { OverviewPage } from "./features/overview/OverviewPage";
 
 function Layout() {
   return (
-    <div className="mx-auto min-h-screen max-w-lg px-4 pb-24 pt-6">
+    <div className="mx-auto min-h-dvh max-w-lg px-[max(1rem,env(safe-area-inset-left))] pr-[max(1rem,env(safe-area-inset-right))] pb-[calc(6rem+env(safe-area-inset-bottom))] pt-[max(1.5rem,env(safe-area-inset-top))]">
       <Outlet />
       <BottomNav />
     </div>
