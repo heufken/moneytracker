@@ -31,6 +31,11 @@ export function SettingsPage() {
     const next = !dark;
     setDark(next);
     document.documentElement.classList.toggle("dark", next);
+    try {
+      localStorage.setItem("theme", next ? "dark" : "light");
+    } catch {
+      // storage blocked: theme just won't persist
+    }
     // Theme-color drives the status bar; keep it in sync with the scheme.
     document
       .querySelector('meta[name="theme-color"]')

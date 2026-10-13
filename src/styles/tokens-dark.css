@@ -5,17 +5,17 @@
   --color-foreground: #F5F0E6;
   --color-card: #221F17;
   --color-card-foreground: #F5F0E6;
-  --color-primary: #FFD02F;                  /* pop colors stay */
+  --color-primary: #EDC02E;                  /* pop colors dimmed ~8% so they don't glare */
   --color-primary-foreground: #0A0A0A;       /* ink on yellow, 10:1 */
   --color-secondary: #221F17;
   --color-secondary-foreground: #F5F0E6;
   --color-muted: #17150F;
   --color-muted-foreground: #A8A29E;
-  --color-border: #F5F0E6;                   /* borders flip to light */
-  --color-ring: #F5F0E6;
-  --color-shadow: #F5F0E6;                   /* shadows flip to light */
-  --color-income: #3DDC97;
-  --color-expense: #FF6B6B;
-  --color-destructive: #FF6B6B;
+  --color-border: #9C9484;                   /* mid-tone: 6:1 on bg, outlines without glare */
+  --color-ring: #F5F0E6;                     /* focus stays bright */
+  --color-shadow: #4A4538;                   /* dim hard block: depth, not a second outline */
+  --color-income: #36C48A;
+  --color-expense: #EE6464;
+  --color-destructive: #EE6464;
   --color-destructive-foreground: #0A0A0A;
 }

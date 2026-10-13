@@ -35,9 +35,9 @@
   --radius-pill: 9999px;
 
   /* shadows: hard offsets only, share border color */
-  --shadow-sm: 3px 3px 0 0 var(--ink);
-  --shadow-md: 5px 5px 0 0 var(--ink);
-  --shadow-lg: 8px 8px 0 0 var(--ink);
+  --shadow-sm: 3px 3px 0 0 var(--color-shadow);
+  --shadow-md: 5px 5px 0 0 var(--color-shadow);
+  --shadow-lg: 8px 8px 0 0 var(--color-shadow);
 
   /* motion */
   --duration-fast: 80ms;
