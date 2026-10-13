@@ -1,14 +1,17 @@
 import { useEffect, useState } from "react";
-import { HashRouter, Route, Routes, Outlet } from "react-router-dom";
+import { HashRouter, Route, Routes, Outlet, useLocation } from "react-router-dom";
 import { BottomNav } from "./components/layout/BottomNav";
 import { TransactionsPage } from "./features/transactions/TransactionsPage";
 import { SettingsPage } from "./features/settings/SettingsPage";
 import { OverviewPage } from "./features/overview/OverviewPage";
 import { WalletOnboarding } from "./features/wallets/WalletOnboarding";
 import { getSetting, listTransactions, listWallets, setSetting } from "./db/api";
+import { cn } from "./lib/utils";
 
 function Layout() {
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [onboardedTick, setOnboardedTick] = useState(0);
+  const wide = useLocation().pathname === "/"; // Overview has charts + cards that use the room
 
   useEffect(() => {
     // First run = no transactions, no wallets (categories are seeded), and
@@ -27,14 +30,15 @@ function Layout() {
   }, []);
 
   return (
-    <div className="mx-auto min-h-dvh max-w-lg px-[max(1rem,env(safe-area-inset-left))] pr-[max(1rem,env(safe-area-inset-right))] pb-[calc(6rem+env(safe-area-inset-bottom))] pt-[max(1.5rem,env(safe-area-inset-top))]">
-      <Outlet />
+    <div className={cn("mx-auto min-h-dvh max-w-lg px-[max(1rem,env(safe-area-inset-left))] pr-[max(1rem,env(safe-area-inset-right))] pb-[calc(6rem+env(safe-area-inset-bottom))] pt-[max(1.5rem,env(safe-area-inset-top))]", wide && "md:max-w-5xl")}>
+      <Outlet key={onboardedTick} />
       <BottomNav />
       <WalletOnboarding
         open={showOnboarding}
         onDone={() => {
           void setSetting("walletsOnboarded", "1");
           setShowOnboarding(false);
+          setOnboardedTick((n) => n + 1); // remount the page so Overview sees the just-created wallets
         }}
       />
     </div>

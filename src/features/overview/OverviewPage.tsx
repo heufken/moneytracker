@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import {
   Bar,
   BarChart,
+  Cell,
   CartesianGrid,
   Legend,
   ResponsiveContainer,
@@ -17,6 +18,7 @@ import { formatMoney } from "../../lib/money";
 import { monthTotals, monthlyFlow, spendingByCategory } from "../../lib/totals";
 import { cn } from "../../lib/utils";
 import { useTouchDevice } from "../../lib/use-touch-device";
+import { WalletTotalCard } from "../wallets/WalletTotalCard";
 
 const MONTHS = [
   "January", "February", "March", "April", "May", "June",
@@ -71,6 +73,8 @@ export function OverviewPage() {
     <div className="page-fade space-y-6">
       <h1 className="font-display text-2xl font-bold">Overview</h1>
 
+      <WalletTotalCard currency={currency} />
+
       {/* month picker */}
       <div className="flex items-center justify-between border-2 border-border bg-card px-2 py-1 shadow-hard">
         <button
@@ -101,8 +105,9 @@ export function OverviewPage() {
         <SummaryCard label="Net" amount={totals.net} tone={totals.net >= 0 ? "income" : "expense"} currency={currency} />
       </div>
 
+      <div className="grid gap-6 lg:grid-cols-2">
       {/* spending by category */}
-      <section aria-label="Spending by category" className="border-2 border-border bg-card p-4 shadow-hard-md">
+      <section aria-label="Spending by category" className="min-w-0 border-2 border-border bg-card p-4 shadow-hard-md">
         <h2 className="mb-3 font-display text-sm font-bold uppercase tracking-widest">Spending by category</h2>
         {spend.length === 0 ? (
           <p className="text-base text-muted-foreground">No expenses this month.</p>
@@ -132,7 +137,7 @@ export function OverviewPage() {
               />
               <Bar dataKey="total" radius={0} stroke="var(--color-border)" strokeWidth={2}>
                 {spend.map((s) => (
-                  <Bar key={s.categoryId} dataKey="total" fill={`var(--${s.color}-400)`} />
+                  <Cell key={s.categoryId} fill={`var(--${s.color}-400)`} />
                 ))}
               </Bar>
             </BarChart>
@@ -142,6 +147,7 @@ export function OverviewPage() {
 
       {/* 6-month income vs expense */}
       <SixMonthChart month={month} currency={currency} isTouch={isTouch} />
+      </div>
     </div>
   );
 }
@@ -149,12 +155,12 @@ export function OverviewPage() {
 function SummaryCard({ label, amount, tone, currency }: { label: string; amount: number; tone: "income" | "expense"; currency: string }) {
   return (
     <div
-      className={cn("border-3 border-border p-5 shadow-hard-lg", tone === "income" ? "bg-income" : "bg-expense")}
+      className={cn("@container border-3 border-border p-5 shadow-hard-lg", tone === "income" ? "bg-income" : "bg-expense")}
     >
       <p className="text-xs font-semibold uppercase tracking-widest">{label}</p>
       <p
-        className="tnum font-display font-bold [overflow-wrap:anywhere]"
-        style={{ fontSize: "clamp(1.25rem, 5vw, 2.5rem)" }}
+        // mobile: viewport-based. md+: cards sit in 3 columns, so size from the card (cqw), not the screen
+        className="tnum font-display font-bold [overflow-wrap:anywhere] [font-size:clamp(1.25rem,5vw,2.5rem)] md:[font-size:clamp(1.25rem,10cqw,2.5rem)]"
       >
         {formatMoney(amount, currency)}
       </p>
@@ -186,7 +192,7 @@ function SixMonthChart({ month, currency, isTouch }: { month: string; currency: 
   }, [month]);
 
   return (
-    <section aria-label="Income vs expense, last 6 months" className="border-2 border-border bg-card p-4 shadow-hard-md">
+    <section aria-label="Income vs expense, last 6 months" className="min-w-0 border-2 border-border bg-card p-4 shadow-hard-md">
       <h2 className="mb-3 font-display text-sm font-bold uppercase tracking-widest">Last 6 months</h2>
       <ResponsiveContainer width="100%" height={220}>
         <BarChart data={flow} margin={{ left: 0, right: 8, top: 4, bottom: 4 }}>

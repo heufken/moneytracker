@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { monthTotals, monthlyFlow, spendingByCategory } from "./totals";
+import { balanceShares, monthTotals, monthlyFlow, spendingByCategory } from "./totals";
 import type { Category, Transaction } from "../db/types";
 
 const cat = (id: string, name: string, color: string): Category => ({
@@ -50,6 +50,21 @@ describe("spendingByCategory", () => {
   it("unknown category gets placeholder meta", () => {
     const t = [txn("a", "expense", 100, "ghost", "2026-10-01")];
     expect(spendingByCategory(t, [])[0]).toMatchObject({ name: "Unknown", total: 100 });
+  });
+});
+
+describe("balanceShares", () => {
+  it("splits by positive total", () => {
+    expect(balanceShares([300, 100])).toEqual([0.75, 0.25]);
+  });
+
+  it("overdrawn wallets get 0 and don't skew the others", () => {
+    expect(balanceShares([100, -50])).toEqual([1, 0]);
+  });
+
+  it("all zero or negative is all zero, not NaN", () => {
+    expect(balanceShares([0, -5])).toEqual([0, 0]);
+    expect(balanceShares([])).toEqual([]);
   });
 });
 

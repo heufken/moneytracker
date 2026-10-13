@@ -44,6 +44,12 @@ export function spendingByCategory(
     .sort((a, b) => b.total - a.total);
 }
 
+/** Each balance as a 0–1 fraction of the positive total. Overdrawn (≤0) wallets get 0 so bars never go negative. */
+export function balanceShares(balances: number[]): number[] {
+  const pos = balances.reduce((s, b) => s + Math.max(b, 0), 0);
+  return balances.map((b) => (pos > 0 ? Math.max(b, 0) / pos : 0));
+}
+
 export interface MonthlyFlow {
   /** `YYYY-MM` */
   month: string;
