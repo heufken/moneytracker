@@ -14,6 +14,13 @@ import {
 } from "../../db/api";
 import type { Wallet } from "../../db/types";
 
+/** Common places money sits. Short on purpose: anything else goes through "Custom…". */
+const PRESETS = [
+  { group: "Banks", names: ["BCA", "Mandiri", "BNI", "BRI", "Jago"] },
+  { group: "E-wallets", names: ["GoPay", "OVO", "DANA", "ShopeePay"] },
+];
+const CUSTOM = "__custom";
+
 export function WalletsManager() {
   const [wallets, setWallets] = useState<Wallet[]>([]);
   const [balances, setBalances] = useState<Record<string, number>>({});
@@ -96,9 +103,11 @@ export function WalletsManager() {
       )}
 
       <WalletDialog
-        key={editing?.id ?? "new"}
+        // length in the key: remount (fresh form) after each add, otherwise the last name sticks
+        key={editing?.id ?? `new-${wallets.length}`}
         open={adding || editing !== null}
         wallet={editing}
+        existingNames={wallets.map((w) => w.name.toLowerCase())}
         onClose={() => {
           setAdding(false);
           setEditing(null);
@@ -156,12 +165,16 @@ export function WalletsManager() {
 interface WalletDialogProps {
   open: boolean;
   wallet?: Wallet | null;
+  /** Lowercased names already in use; hidden from the preset list. */
+  existingNames: string[];
   onClose: () => void;
   onSaved: () => void;
 }
 
-function WalletDialog({ open, wallet, onClose, onSaved }: WalletDialogProps) {
+function WalletDialog({ open, wallet, existingNames, onClose, onSaved }: WalletDialogProps) {
   const [name, setName] = useState(wallet?.name ?? "");
+  const [custom, setCustom] = useState(false);
+  const free = (names: string[]) => names.filter((n) => !existingNames.includes(n.toLowerCase()));
   // Plain integer prefill: parseMoney rejects the "-Rp 250.000" formatMoney shape
   const [balance, setBalance] = useState(wallet ? String(wallet.initialBalance) : "");
   const [error, setError] = useState<string | null>(null);
@@ -196,14 +209,45 @@ function WalletDialog({ open, wallet, onClose, onSaved }: WalletDialogProps) {
           <label htmlFor="wallet-name" className="mb-1 block text-xs font-semibold uppercase tracking-widest">
             Name
           </label>
-          <input
-            id="wallet-name"
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            className="h-11 w-full rounded-none border-2 border-border bg-card px-3 text-base shadow-hard-sm focus:outline-3 focus:outline-ring focus:outline-offset-2"
-            placeholder="e.g. GoPay"
-          />
+          {/* adding: pick from presets (or Custom…); editing: plain rename */}
+          {!wallet && (
+            <select
+              id="wallet-name"
+              value={custom ? CUSTOM : name}
+              onChange={(e) => {
+                const v = e.target.value;
+                setCustom(v === CUSTOM);
+                setName(v === CUSTOM ? "" : v);
+              }}
+              className="h-11 w-full rounded-none border-2 border-border bg-card px-3 text-base shadow-hard-sm focus:outline-3 focus:outline-ring focus:outline-offset-2"
+            >
+              <option value="">Choose…</option>
+              {free(["Cash"]).map((n) => (
+                <option key={n}>{n}</option>
+              ))}
+              {PRESETS.map(({ group, names }) =>
+                free(names).length > 0 ? (
+                  <optgroup key={group} label={group}>
+                    {free(names).map((n) => (
+                      <option key={n}>{n}</option>
+                    ))}
+                  </optgroup>
+                ) : null,
+              )}
+              <option value={CUSTOM}>Custom…</option>
+            </select>
+          )}
+          {(wallet || custom) && (
+            <input
+              id={wallet ? "wallet-name" : undefined}
+              aria-label="Wallet name"
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className={`h-11 w-full rounded-none border-2 border-border bg-card px-3 text-base shadow-hard-sm focus:outline-3 focus:outline-ring focus:outline-offset-2${wallet ? "" : " mt-2"}`}
+              placeholder="e.g. Permata, Neo Commerce"
+            />
+          )}
         </div>
         <div>
           <label htmlFor="wallet-balance" className="mb-1 block text-xs font-semibold uppercase tracking-widest">

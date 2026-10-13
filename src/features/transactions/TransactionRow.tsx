@@ -5,12 +5,14 @@ import type { Category, Transaction } from "../../db/types";
 interface TransactionRowProps {
   transaction: Transaction;
   category?: Category;
+  /** Which wallet this moves money in/out of; undefined = wallets not in use. */
+  walletLabel?: string;
   currency: string;
   onEdit: (t: Transaction) => void;
   onDelete: (t: Transaction) => void;
 }
 
-export function TransactionRow({ transaction: t, category, currency, onEdit, onDelete }: TransactionRowProps) {
+export function TransactionRow({ transaction: t, category, walletLabel, currency, onEdit, onDelete }: TransactionRowProps) {
   const income = t.type === "income";
   const amount = `${income ? "+" : "-"}${formatMoney(t.amount, currency)}`;
   return (
@@ -32,6 +34,8 @@ export function TransactionRow({ transaction: t, category, currency, onEdit, onD
             {category?.name ?? "Unknown category"}
           </span>
         </div>
+        {/* own lines: sharing one truncates the note to "…" at 375px */}
+        {walletLabel ? <p className="truncate text-sm font-semibold text-muted-foreground">{walletLabel}</p> : null}
         {t.note ? (
           <p className="truncate text-sm text-muted-foreground" title={t.note}>
             {t.note}

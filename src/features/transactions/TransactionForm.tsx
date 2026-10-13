@@ -3,7 +3,7 @@ import { Button } from "../../components/ui/button";
 import { formatMoney, parseMoney, parseMoneySafe } from "../../lib/money";
 import { todayISO } from "../../lib/dates";
 import { cn } from "../../lib/utils";
-import { listCategories, listWallets, addTransaction, updateTransaction, getSetting } from "../../db/api";
+import { listCategories, listWallets, walletBalance, addTransaction, updateTransaction, getSetting } from "../../db/api";
 import type { Category, Transaction, Wallet } from "../../db/types";
 import { transactionFormSchema, type TransactionFormValues } from "./schema";
 
@@ -30,6 +30,7 @@ const EMPTY: TransactionFormValues = {
 export function TransactionForm({ transaction, initialCategoryId, initialWalletId, onDone, onCancel }: Props) {
   const [categories, setCategories] = useState<Category[]>([]);
   const [wallets, setWallets] = useState<Wallet[]>([]);
+  const [balances, setBalances] = useState<Record<string, number>>({});
   const [currency, setCurrency] = useState("IDR");
   const [values, setValues] = useState<TransactionFormValues>(() =>
     transaction
@@ -51,8 +52,11 @@ export function TransactionForm({ transaction, initialCategoryId, initialWalletI
     listCategories().then((rows) => {
       if (!cancelled) setCategories(rows);
     });
-    listWallets().then((rows) => {
-      if (!cancelled) setWallets(rows);
+    listWallets().then(async (rows) => {
+      const bal = Object.fromEntries(await Promise.all(rows.map(async (w) => [w.id, await walletBalance(w.id)])));
+      if (cancelled) return;
+      setBalances(bal);
+      setWallets(rows);
     });
     getSetting("currency").then((v) => {
       if (!cancelled && v) setCurrency(v);
@@ -202,7 +206,7 @@ export function TransactionForm({ transaction, initialCategoryId, initialWalletI
       {wallets.length > 0 && (
         <div>
           <label htmlFor="wallet" className="mb-1 block text-xs font-semibold uppercase tracking-widest">
-            Wallet (optional)
+            {values.type === "expense" ? "Paid from" : "Deposit to"} (optional)
           </label>
           <select
             id="wallet"
@@ -213,7 +217,7 @@ export function TransactionForm({ transaction, initialCategoryId, initialWalletI
             <option value="">No wallet</option>
             {wallets.map((w) => (
               <option key={w.id} value={w.id}>
-                {w.name}
+                {w.name} · {formatMoney(balances[w.id] ?? 0, currency)}
               </option>
             ))}
           </select>

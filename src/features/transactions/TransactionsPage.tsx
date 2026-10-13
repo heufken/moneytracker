@@ -5,8 +5,8 @@ import { Dialog } from "../../components/ui/dialog";
 import { ConfirmDeleteDialog } from "../../components/ui/confirm-delete";
 import { TransactionForm } from "./TransactionForm";
 import { TransactionList } from "./TransactionList";
-import { listCategories, listTransactions, deleteTransaction, getSetting } from "../../db/api";
-import type { Category, Transaction, TransactionType } from "../../db/types";
+import { listCategories, listTransactions, listWallets, deleteTransaction, getSetting } from "../../db/api";
+import type { Category, Transaction, TransactionType, Wallet } from "../../db/types";
 import { monthRange, todayISO } from "../../lib/dates";
 import { cn } from "../../lib/utils";
 
@@ -23,6 +23,7 @@ export function TransactionsPage() {
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [wallets, setWallets] = useState<Wallet[]>([]);
   const [currency, setCurrency] = useState("IDR");
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<Transaction | null>(null);
@@ -30,6 +31,7 @@ export function TransactionsPage() {
 
   useEffect(() => {
     listCategories().then(setCategories);
+    listWallets().then(setWallets);
     getSetting("currency").then((v) => {
       if (v) setCurrency(v);
     });
@@ -177,6 +179,7 @@ export function TransactionsPage() {
         transactions={transactions}
         currency={currency}
         categories={categories}
+        wallets={wallets}
         onEdit={(t) => {
           setEditing(t);
           setFormOpen(true);
