@@ -190,6 +190,7 @@ export function TransactionsPage() {
         onClose={() => setFormOpen(false)}
       >
         <TransactionForm
+          transaction={editing ?? undefined}
            initialCategoryId={editing ? undefined : lastCategoryId}
           initialWalletId={editing ? undefined : lastWalletId}
           onDone={() => {
