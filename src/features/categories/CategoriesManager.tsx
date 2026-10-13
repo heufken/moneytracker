@@ -51,7 +51,7 @@ export function CategoriesManager() {
               className="size-3 shrink-0 rounded-pill border border-border"
               style={{ backgroundColor: `var(--${c.color}-400)` }}
             />
-            <span className="min-w-0 flex-1 truncate text-base font-semibold">{c.name}</span>
+            <span className="min-w-0 flex-1 truncate text-base font-semibold" title={c.name}>{c.name}</span>
             <button
               type="button"
               onClick={() => setEditing(c)}

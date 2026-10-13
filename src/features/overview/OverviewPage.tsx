@@ -96,9 +96,9 @@ export function OverviewPage() {
 
       {/* summary cards: stacked mobile, 3-col ≥768px; net flips color by sign */}
       <div className="grid gap-4 md:grid-cols-3">
-        <SummaryCard label="Income" amount={totals.income} tone="income" />
-        <SummaryCard label="Expense" amount={totals.expense} tone="expense" />
-        <SummaryCard label="Net" amount={totals.net} tone={totals.net >= 0 ? "income" : "expense"} />
+        <SummaryCard label="Income" amount={totals.income} tone="income" currency={currency} />
+        <SummaryCard label="Expense" amount={totals.expense} tone="expense" currency={currency} />
+        <SummaryCard label="Net" amount={totals.net} tone={totals.net >= 0 ? "income" : "expense"} currency={currency} />
       </div>
 
       {/* spending by category */}
@@ -110,8 +110,15 @@ export function OverviewPage() {
           <ResponsiveContainer width="100%" height={Math.max(spend.length * 44, 120)}>
             <BarChart data={spend} layout="vertical" margin={{ left: 8, right: 24, top: 4, bottom: 4 }}>
               <CartesianGrid horizontal={false} strokeDasharray="4 4" stroke="var(--color-muted-foreground)" strokeOpacity={0.4} />
-              <XAxis type="number" tick={{ fontSize: 12, fill: "var(--color-muted-foreground)" }} tickFormatter={(v: number) => formatMoney(v, currency)} />
-              <YAxis type="category" dataKey="name" width={90} tick={{ fontSize: 12, fill: "var(--color-foreground)" }} />
+          <XAxis type="number" tick={{ fontSize: 12, fill: "var(--color-muted-foreground)" }} tickFormatter={(v: number) => formatMoney(v, currency)} />
+          <YAxis
+            type="category"
+            dataKey="name"
+            width={90}
+            tick={{ fontSize: 12, fill: "var(--color-foreground)" }}
+            // SVG text never wraps: cut at 16 chars; the tooltip carries the full name
+            tickFormatter={(v: string) => (v.length > 16 ? `${v.slice(0, 15)}…` : v)}
+          />
               <Tooltip
                 trigger={isTouch ? "click" : "hover"}
                 formatter={(v) => [formatMoney(Number(v), currency), "Spent"]}
@@ -139,14 +146,17 @@ export function OverviewPage() {
   );
 }
 
-function SummaryCard({ label, amount, tone }: { label: string; amount: number; tone: "income" | "expense" }) {
+function SummaryCard({ label, amount, tone, currency }: { label: string; amount: number; tone: "income" | "expense"; currency: string }) {
   return (
     <div
       className={cn("border-3 border-border p-5 shadow-hard-lg", tone === "income" ? "bg-income" : "bg-expense")}
     >
       <p className="text-xs font-semibold uppercase tracking-widest">{label}</p>
-      <p className="tnum font-display text-3xl font-bold" style={{ fontSize: "clamp(1.5rem, 6vw, 2.5rem)" }}>
-        {formatMoney(amount)}
+      <p
+        className="tnum font-display font-bold [overflow-wrap:anywhere]"
+        style={{ fontSize: "clamp(1.25rem, 5vw, 2.5rem)" }}
+      >
+        {formatMoney(amount, currency)}
       </p>
     </div>
   );
@@ -184,8 +194,9 @@ function SixMonthChart({ month, currency, isTouch }: { month: string; currency: 
           <XAxis dataKey="label" tick={{ fontSize: 12, fill: "var(--color-foreground)" }} />
           <YAxis
             tick={{ fontSize: 12, fill: "var(--color-muted-foreground)" }}
-            tickFormatter={(v: number) => (v >= 1000000 ? `${v / 1000000}M` : v >= 1000 ? `${v / 1000}k` : String(v))}
-            width={44}
+            // compact so trillions don't overflow the 64px gutter
+            tickFormatter={(v: number) => Intl.NumberFormat(undefined, { notation: "compact", maximumFractionDigits: 1 }).format(v)}
+            width={64}
           />
           <Tooltip
             trigger={isTouch ? "click" : "hover"}

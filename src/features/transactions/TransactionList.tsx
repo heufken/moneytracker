@@ -5,11 +5,12 @@ import { formatMoney } from "../../lib/money";
 interface TransactionListProps {
   transactions: Transaction[];
   categories: Category[];
+  currency: string;
   onEdit: (t: Transaction) => void;
   onDelete: (t: Transaction) => void;
 }
 
-export function TransactionList({ transactions, categories, onEdit, onDelete }: TransactionListProps) {
+export function TransactionList({ transactions, categories, currency, onEdit, onDelete }: TransactionListProps) {
   if (transactions.length === 0) {
     return (
       <div className="border-2 border-border bg-card p-8 text-center text-base text-muted-foreground">
@@ -30,6 +31,7 @@ export function TransactionList({ transactions, categories, onEdit, onDelete }: 
             key={t.id}
             transaction={t}
             category={byId.get(t.categoryId)}
+            currency={currency}
             onEdit={onEdit}
             onDelete={onDelete}
           />
@@ -37,8 +39,8 @@ export function TransactionList({ transactions, categories, onEdit, onDelete }: 
       </ul>
       <p className="mt-2 text-sm text-muted-foreground tnum">
         {transactions.length} transaction{transactions.length === 1 ? "" : "s"} ·{" "}
-        <span className="font-semibold text-income-foreground">+{formatMoney(earned)}</span> ·{" "}
-        <span className="font-semibold text-expense-foreground">-{formatMoney(spent)}</span>
+        <span className="font-semibold text-income-foreground">+{formatMoney(earned, currency)}</span> ·{" "}
+        <span className="font-semibold text-expense-foreground">-{formatMoney(spent, currency)}</span>
       </p>
     </div>
   );

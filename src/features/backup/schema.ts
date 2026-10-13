@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { MAX_AMOUNT } from "../../lib/money";
 
 // Mirrors db/types.ts shapes. Import validates against these before any write.
 const categorySchema = z.object({
@@ -24,14 +25,24 @@ const walletSchema = z.object({
   initialBalance: z.number().int(),
 });
 
+/** `YYYY-MM-DD` that is also a real calendar date (rejects 2025-02-31). */
+const isoDate = z
+  .string()
+  .regex(/^\d{4}-\d{2}-\d{2}$/, "Expected YYYY-MM-DD")
+  .refine((v) => {
+    const [y, m, d] = v.split("-").map(Number);
+    return new Date(y!, m! - 1, d!).getDate() === d;
+  }, "Not a real date");
+
 const transactionSchema = z.object({
   id: z.string().min(1),
   type: z.enum(["income", "expense"]),
-  // Money stays integer: reject floats and non-integers outright.
-  amount: z.number().int().positive(),
+  // Money stays integer: reject floats outright. 0 is tolerated (old exports
+  // contain it); the form never creates new zero transactions.
+  amount: z.number().int().nonnegative().max(MAX_AMOUNT),
   categoryId: z.string().min(1),
   walletId: z.string().optional(),
-  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Expected YYYY-MM-DD"),
+  date: isoDate,
   note: z.string().optional(),
   createdAt: z.number(),
   updatedAt: z.number(),
@@ -45,10 +56,21 @@ const backupDataSchema = z.object({
   wallets: z.array(walletSchema).optional(),
 });
 
+/** Transactions may only tag wallets the file itself defines (or none). */
+const walletRefsValid = (data: z.infer<typeof backupDataSchema>) => {
+  const ids = new Set((data.wallets ?? []).map((w) => w.id));
+  return data.transactions.every((t) => t.walletId === undefined || ids.has(t.walletId));
+};
+
+const backupFileDataSchema = backupDataSchema.refine(
+  walletRefsValid,
+  "a transaction tags a wallet that is not in the file",
+);
+
 export const backupFileSchema = z.object({
   version: z.literal(1),
   exportedAt: z.string(),
-  data: backupDataSchema,
+  data: backupFileDataSchema,
 });
 
 export type BackupFile = z.infer<typeof backupFileSchema>;

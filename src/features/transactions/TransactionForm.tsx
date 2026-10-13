@@ -1,6 +1,6 @@
 import { useEffect, useState, type SyntheticEvent } from "react";
 import { Button } from "../../components/ui/button";
-import { formatMoney, parseMoney } from "../../lib/money";
+import { formatMoney, parseMoney, parseMoneySafe } from "../../lib/money";
 import { todayISO } from "../../lib/dates";
 import { cn } from "../../lib/utils";
 import { listCategories, listWallets, addTransaction, updateTransaction, getSetting } from "../../db/api";
@@ -36,7 +36,7 @@ export function TransactionForm({ transaction, initialCategoryId, initialWalletI
       ? {
           type: transaction.type,
           // display prefill grouped like the app formats it
-          amount: formatMoney(transaction.amount).replace(/^[A-Za-z]+\s/, ""),
+          amount: String(transaction.amount),
           categoryId: transaction.categoryId,
           walletId: transaction.walletId ?? "",
           date: transaction.date,
@@ -164,11 +164,15 @@ export function TransactionForm({ transaction, initialCategoryId, initialWalletI
             {currency}
           </span>
         </div>
-        {values.amount && !errors.amount ? (
-          <p className="mt-1 text-sm text-muted-foreground tnum" aria-live="polite">
-            {formatMoney(parseMoney(values.amount))}
-          </p>
-        ) : null}
+        {(() => {
+          // Preview only: never throws during render on "0" or oversize input
+          const preview = parseMoneySafe(values.amount);
+          return preview !== null && !errors.amount ? (
+            <p className="mt-1 text-sm text-muted-foreground tnum" aria-live="polite">
+              {formatMoney(preview, currency)}
+            </p>
+          ) : null;
+        })()}
         <div id="amount-error">{err("amount")}</div>
       </div>
 

@@ -6,6 +6,7 @@ import { formatMoney, parseMoney } from "../../lib/money";
 import {
   countTransactionsByWallet,
   deleteWallet,
+  getSetting,
   listWallets,
   newId,
   saveWallet,
@@ -20,6 +21,7 @@ export function WalletsManager() {
   const [adding, setAdding] = useState(false);
   const [deleting, setDeleting] = useState<Wallet | null>(null);
   const [deletingCount, setDeletingCount] = useState<number | null>(null);
+  const [currency, setCurrency] = useState("IDR");
 
   useEffect(() => {
     let cancelled = false;
@@ -30,6 +32,8 @@ export function WalletsManager() {
       setBalances(
         Object.fromEntries(await Promise.all(rows.map(async (w) => [w.id, await walletBalance(w.id)]))),
       );
+      const cur = await getSetting("currency");
+      if (!cancelled && cur) setCurrency(cur);
     })();
     return () => {
       cancelled = true;
@@ -67,8 +71,8 @@ export function WalletsManager() {
               className="flex min-h-[56px] items-center gap-3 border-b-2 border-border px-4 py-2 last:border-b-0"
             >
               <div className="min-w-0 flex-1">
-                <p className="truncate text-base font-semibold">{w.name}</p>
-                <p className="tnum text-sm text-muted-foreground">{formatMoney(balances[w.id] ?? 0)}</p>
+                <p className="truncate text-base font-semibold" title={w.name}>{w.name}</p>
+                <p className="tnum text-sm text-muted-foreground">{formatMoney(balances[w.id] ?? 0, currency)}</p>
               </div>
               <button
                 type="button"
@@ -158,7 +162,8 @@ interface WalletDialogProps {
 
 function WalletDialog({ open, wallet, onClose, onSaved }: WalletDialogProps) {
   const [name, setName] = useState(wallet?.name ?? "");
-  const [balance, setBalance] = useState(wallet ? formatMoney(wallet.initialBalance).replace(/^[A-Za-z]+\s/, "") : "");
+  // Plain integer prefill: parseMoney rejects the "-Rp 250.000" formatMoney shape
+  const [balance, setBalance] = useState(wallet ? String(wallet.initialBalance) : "");
   const [error, setError] = useState<string | null>(null);
 
   async function handleSubmit(e: SyntheticEvent) {
@@ -167,12 +172,12 @@ function WalletDialog({ open, wallet, onClose, onSaved }: WalletDialogProps) {
       setError("Name is required.");
       return;
     }
-    let initialBalance = wallet?.initialBalance ?? 0;
+    let initialBalance = 0;
     if (balance.trim()) {
       try {
         initialBalance = parseMoney(balance);
-      } catch {
-        setError("Digits only.");
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "Invalid amount.");
         return;
       }
     }

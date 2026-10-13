@@ -5,7 +5,7 @@ import { Dialog } from "../../components/ui/dialog";
 import { ConfirmDeleteDialog } from "../../components/ui/confirm-delete";
 import { TransactionForm } from "./TransactionForm";
 import { TransactionList } from "./TransactionList";
-import { listCategories, listTransactions, deleteTransaction } from "../../db/api";
+import { listCategories, listTransactions, deleteTransaction, getSetting } from "../../db/api";
 import type { Category, Transaction, TransactionType } from "../../db/types";
 import { monthRange, todayISO } from "../../lib/dates";
 import { cn } from "../../lib/utils";
@@ -23,12 +23,16 @@ export function TransactionsPage() {
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [currency, setCurrency] = useState("IDR");
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<Transaction | null>(null);
   const [deleting, setDeleting] = useState<Transaction | null>(null);
 
   useEffect(() => {
     listCategories().then(setCategories);
+    getSetting("currency").then((v) => {
+      if (v) setCurrency(v);
+    });
   }, []);
 
   // IndexedDB is the external system; reload when filters change.
@@ -115,7 +119,7 @@ export function TransactionsPage() {
       </div>
 
       {/* type chips */}
-      <div className="flex gap-2 overflow-x-auto pb-1 snap-x">
+      <div className="flex flex-wrap gap-2 pb-1">
         {(["all", "income", "expense"] as const).map((t) => (
           <button
             key={t}
@@ -126,7 +130,7 @@ export function TransactionsPage() {
               setCategoryFilter("all");
             }}
             className={cn(
-              "min-h-[36px] shrink-0 snap-start rounded-pill border-2 border-border px-4 text-xs font-semibold uppercase tracking-widest transition-colors duration-[140ms]",
+              "min-h-[36px] shrink-0 rounded-pill border-2 border-border px-4 text-xs font-semibold uppercase tracking-widest transition-colors duration-[140ms]",
               typeFilter === t ? "bg-primary text-primary-foreground shadow-hard" : "bg-card text-muted-foreground",
             )}
           >
@@ -136,13 +140,13 @@ export function TransactionsPage() {
       </div>
 
       {/* category chips */}
-      <div className="flex gap-2 overflow-x-auto pb-1 snap-x">
+      <div className="flex flex-wrap gap-2 pb-1">
         <button
           type="button"
           aria-pressed={categoryFilter === "all"}
           onClick={() => setCategoryFilter("all")}
           className={cn(
-            "min-h-[36px] shrink-0 snap-start rounded-pill border-2 border-border px-4 text-xs font-semibold uppercase tracking-widest transition-colors duration-[140ms]",
+            "min-h-[36px] shrink-0 rounded-pill border-2 border-border px-4 text-xs font-semibold uppercase tracking-widest transition-colors duration-[140ms]",
             categoryFilter === "all" ? "bg-primary text-primary-foreground shadow-hard" : "bg-card text-muted-foreground",
           )}
         >
@@ -155,22 +159,23 @@ export function TransactionsPage() {
             aria-pressed={categoryFilter === c.id}
             onClick={() => setCategoryFilter(c.id)}
             className={cn(
-              "flex min-h-[36px] shrink-0 snap-start items-center gap-2 rounded-pill border-2 border-border px-4 text-xs font-semibold uppercase tracking-widest transition-colors duration-[140ms]",
+              "flex min-h-[36px] max-w-full shrink-0 items-center gap-2 rounded-pill border-2 border-border px-4 text-xs font-semibold uppercase tracking-widest transition-colors duration-[140ms]",
               categoryFilter === c.id ? "bg-primary text-primary-foreground shadow-hard" : "bg-card text-muted-foreground",
             )}
           >
             <span
               aria-hidden
-              className="size-2 rounded-pill border border-border"
+              className="size-2 shrink-0 rounded-pill border border-border"
               style={{ backgroundColor: `var(--${c.color}-400)` }}
             />
-            {c.name}
+            <span className="truncate" title={c.name}>{c.name}</span>
           </button>
         ))}
       </div>
 
       <TransactionList
         transactions={transactions}
+        currency={currency}
         categories={categories}
         onEdit={(t) => {
           setEditing(t);
