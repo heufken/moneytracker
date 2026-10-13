@@ -72,11 +72,11 @@ export function Dialog({ open, title, destructive, onClose, children }: DialogPr
         role="dialog"
         aria-modal="true"
         aria-label={title}
-        className="dialog-card w-full max-w-[420px] border-3 border-border bg-card shadow-hard-lg"
+        className="dialog-card flex max-h-full w-full max-w-[420px] flex-col border-3 border-border bg-card shadow-hard-lg"
       >
         <div
           className={cn(
-            "flex items-center justify-between border-b-2 border-border px-5 py-3",
+            "flex shrink-0 items-center justify-between border-b-2 border-border px-5 py-3",
             destructive ? "bg-destructive text-destructive-foreground" : null,
           )}
         >
@@ -85,12 +85,12 @@ export function Dialog({ open, title, destructive, onClose, children }: DialogPr
             type="button"
             onClick={onClose}
             aria-label="Close dialog"
-            className="flex size-11 items-center justify-center border-2 border-border bg-card shadow-hard active:translate-x-[3px] active:translate-y-[3px] active:shadow-none max-md:hidden"
+            className="flex size-11 items-center justify-center border-2 border-border bg-card shadow-hard active:translate-x-[3px] active:translate-y-[3px] active:shadow-none"
           >
             <X aria-hidden className="size-5" />
           </button>
         </div>
-        <div className="max-h-[70dvh] overscroll-contain p-5">{children}</div>
+        <div className="overflow-y-auto overscroll-contain p-5">{children}</div>
       </div>
     </div>
   );
