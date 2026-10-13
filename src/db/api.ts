@@ -5,8 +5,10 @@ import type { Backup, BackupData, Category, Setting, Transaction, Wallet } from 
 // ---------- ids ----------
 
 export function newId(prefix: string): string {
-  // crypto.randomUUID is available in all modern browsers and Node 19+.
-  return `${prefix}-${crypto.randomUUID()}`;
+  // randomUUID only exists on secure contexts (https/localhost), so it throws on a
+  // LAN-IP dev server; getRandomValues works everywhere.
+  const hex = Array.from(crypto.getRandomValues(new Uint8Array(16)), (b) => b.toString(16).padStart(2, "0"));
+  return `${prefix}-${hex.join("")}`;
 }
 
 // ---------- categories ----------
