@@ -11,7 +11,7 @@ type Row = { wallet: Wallet; balance: number };
 
 /** Overview hero: money across all wallets (all-time, not month-scoped). Tap for the per-wallet split. */
 export function WalletTotalCard({ currency }: { currency: string }) {
-  const [rows, setRows] = useState<Row[] | null>(null); // null = loading, avoids a flash of the empty state
+  const [rows, setRows] = useState<Row[] | null>(null); // null = loading
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
@@ -26,9 +26,8 @@ export function WalletTotalCard({ currency }: { currency: string }) {
     };
   }, []);
 
-  if (!rows) return null;
-
-  if (rows.length === 0) {
+  // While loading, render the card shell at its final size so the page below doesn't jump.
+  if (rows?.length === 0) {
     return (
       <Link
         to="/settings"
@@ -40,30 +39,32 @@ export function WalletTotalCard({ currency }: { currency: string }) {
     );
   }
 
-  const total = rows.reduce((sum, r) => sum + r.balance, 0);
-  const shares = balanceShares(rows.map((r) => r.balance));
+  const list = rows ?? [];
+  const total = list.reduce((sum, r) => sum + r.balance, 0);
+  const shares = balanceShares(list.map((r) => r.balance));
 
   return (
     <>
       <button
         type="button"
         onClick={() => setOpen(true)}
+        disabled={!rows}
         aria-haspopup="dialog"
         className="@container w-full border-3 border-border bg-primary p-5 text-left text-primary-foreground shadow-hard-lg active:translate-x-[3px] active:translate-y-[3px] active:shadow-none"
       >
         <p className="text-xs font-semibold uppercase tracking-widest">Total across wallets</p>
         <p className="tnum font-display font-bold [overflow-wrap:anywhere] [font-size:clamp(1.75rem,8vw,3rem)] md:[font-size:clamp(1.75rem,6cqw,3rem)]">
-          {formatMoney(total, currency)}
+          {rows ? formatMoney(total, currency) : "—"}
         </p>
         <p className="mt-1 flex items-center text-sm font-semibold">
-          {rows.length} wallet{rows.length === 1 ? "" : "s"} · tap for breakdown
+          {rows ? `${list.length} wallet${list.length === 1 ? "" : "s"} · tap for breakdown` : "Loading…"}
           <ChevronRight aria-hidden className="size-4" />
         </p>
       </button>
 
       <Dialog open={open} title="Where your money is" onClose={() => setOpen(false)}>
         <ul className="space-y-4">
-          {rows.map(({ wallet, balance }, i) => (
+          {list.map(({ wallet, balance }, i) => (
             <li key={wallet.id}>
               <div className="flex items-baseline justify-between gap-3">
                 <span className="min-w-0 truncate font-semibold" title={wallet.name}>
