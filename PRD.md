@@ -27,12 +27,12 @@ Just me, phone first, laptop second (optionally the same data on both via Option
 Local-first stays the rule: every device works fully offline from its own IndexedDB. Sync is a bonus that is **off unless the build has `VITE_SYNC_URL`** and the user turns it on in Settings.
 - **Identity = a random 256-bit secret**, shown as a pairing link (`https://app/#sync=<secret>`). No accounts, no user IDs, no OAuth. Whoever has the link has full access, so treat it like a password.
 - **What is stored remotely**: one blob, the same shape as the JSON backup file, encrypted in the browser (AES-GCM, key derived from the secret). The server only sees an opaque id and ciphertext. The server is `worker/` (Cloudflare Worker + one KV namespace, free plan).
-- **When it syncs**: on app start, when the tab becomes visible, and every 30 s while visible. Pull if the remote copy is newer than what this device last synced; otherwise push if local data changed.
-- **Conflicts**: whole-copy, newest push wins. If both devices edited before syncing, the pull wins and the losing device's edits stay in its "before sync" snapshot (Settings). No per-record merge; revisit if it bites.
+- **When it syncs**: only when the user presses **Sync** in Settings (no timers, no background traffic). One button; the app works out the direction. Cloud changed only: pull. This device changed only: push. Neither: "already up to date". Settings shows "Last synced <time>: <what happened>".
+- **Conflicts (both sides changed)**: ask first, never decide silently. Dialog: "Use cloud copy" (replaces this device; a "before sync" snapshot of it is kept in Settings), "Use this device" (replaces the cloud copy; the other device keeps its data until it syncs next and snapshots it first), or Cancel. No per-record merge; revisit if people hit conflicts often.
 - **Pairing a device that already has data** asks first; the first sync replaces its data (snapshot kept).
 - **Device-local state** (`syncKey`, `syncAt`, `syncHash`) lives in localStorage, never in the Settings table and never in backups or the synced blob.
 - Needs HTTPS or `localhost` (Web Crypto). A pulled copy is validated with the same Zod schema as an import before anything is written.
-- Limits: KV is eventually consistent, so a change can take up to ~1-2 min to appear on the other device. If the free-plan limits are hit, sync calls fail; the app keeps working locally.
+- Limits: KV is eventually consistent, so pressing Sync right after the other device synced may not see its changes for up to ~1-2 min; press Sync again. If the free-plan limits are hit, sync calls fail; the app keeps working locally.
 
 ## Out of scope for v1
 Login or multiple users, account-based cloud sync, bank sync or API integrations, multi-currency, budgets and goals, recurring transactions, receipts or attachments, notifications.
