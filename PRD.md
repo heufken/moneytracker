@@ -1,12 +1,12 @@
 # Money Tracker: PRD (v1)
 
-A personal, local-only money tracker. Built for fun and learning. No accounts, no backend, no cloud.
+A personal, local-only money tracker. Built for fun and learning. No accounts, no backend, no cloud. (The one exception is the opt-in, end-to-end-encrypted sync described under "Optional sync"; it is off unless configured.)
 
 ## Goal
 Let me quickly log income and expenses by hand and see where my money goes each month.
 
 ## User
-Just me, on one device (phone first, laptop second). No login.
+Just me, phone first, laptop second (optionally the same data on both via Optional sync). No login.
 
 ## Core features (v1)
 1. **Add / edit / delete a transaction**: type (income or expense), amount, category, date, optional note.
@@ -23,8 +23,19 @@ Just me, on one device (phone first, laptop second). No login.
    are managed in Settings. Deleting a wallet keeps its transactions (tag removed) after
    confirmation.
 
+## Optional sync (opt-in)
+Local-first stays the rule: every device works fully offline from its own IndexedDB. Sync is a bonus that is **off unless the build has `VITE_SYNC_URL`** and the user turns it on in Settings.
+- **Identity = a random 256-bit secret**, shown as a pairing link (`https://app/#sync=<secret>`). No accounts, no user IDs, no OAuth. Whoever has the link has full access, so treat it like a password.
+- **What is stored remotely**: one blob, the same shape as the JSON backup file, encrypted in the browser (AES-GCM, key derived from the secret). The server only sees an opaque id and ciphertext. The server is `worker/` (Cloudflare Worker + one KV namespace, free plan).
+- **When it syncs**: on app start, when the tab becomes visible, and every 30 s while visible. Pull if the remote copy is newer than what this device last synced; otherwise push if local data changed.
+- **Conflicts**: whole-copy, newest push wins. If both devices edited before syncing, the pull wins and the losing device's edits stay in its "before sync" snapshot (Settings). No per-record merge; revisit if it bites.
+- **Pairing a device that already has data** asks first; the first sync replaces its data (snapshot kept).
+- **Device-local state** (`syncKey`, `syncAt`, `syncHash`) lives in localStorage, never in the Settings table and never in backups or the synced blob.
+- Needs HTTPS or `localhost` (Web Crypto). A pulled copy is validated with the same Zod schema as an import before anything is written.
+- Limits: KV is eventually consistent, so a change can take up to ~1-2 min to appear on the other device. If the free-plan limits are hit, sync calls fail; the app keeps working locally.
+
 ## Out of scope for v1
-Login or multiple users, cloud sync, bank sync or API integrations, multi-currency, budgets and goals, recurring transactions, receipts or attachments, notifications.
+Login or multiple users, account-based cloud sync, bank sync or API integrations, multi-currency, budgets and goals, recurring transactions, receipts or attachments, notifications.
 (Budgets and recurring transactions are the likely v2.)
 
 ## Data model
@@ -42,7 +53,7 @@ Login or multiple users, cloud sync, bank sync or API integrations, multi-curren
 - Works offline and is installable on a phone home screen (PWA).
 - Mobile-first: usable at 375px width, with large touch targets.
 - Adding a transaction should take under 10 seconds.
-- Data lives only in the browser (IndexedDB). Losing it must be recoverable via backup.
+- Data lives in the browser (IndexedDB); with sync on, an encrypted copy also lives on the user's own sync server. Losing the local data must be recoverable via backup or sync.
 
 ## Definition of done (v1)
 - I can add, edit, and delete transactions and categories, and everything survives a page reload.

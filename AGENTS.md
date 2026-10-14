@@ -3,7 +3,7 @@
 Instructions for AI coding agents working in this repo. Read `PRD.md` first for what we're building and what is out of scope.
 
 ## Project
-Local-only personal money tracker. Single user, no auth, no backend. All data stays in the browser.
+Local-only personal money tracker. Single user, no auth, no backend. All data stays in the browser, except the opt-in encrypted sync (see PRD "Optional sync").
 
 ## Stack
 - Vite + React + TypeScript (strict mode)
@@ -33,15 +33,17 @@ src/
     categories/
     overview/
     backup/
+    sync/       opt-in sync client (inert unless VITE_SYNC_URL is set)
   components/   shared UI (shadcn lives in components/ui)
   lib/          pure helpers (money, dates, csv)
+worker/         the optional sync server (Cloudflare Worker + KV); not part of the app bundle
 ```
 
 ## Hard rules
 - **Money is an integer** in the smallest currency unit. Never use floats for amounts. Format for display only, in `lib/money.ts`.
 - **Dates are `YYYY-MM-DD` strings in local time.** Do not store JS `Date` objects or UTC timestamps for the transaction date. This avoids timezone off-by-one bugs.
 - **All database access goes through `src/db`.** Components never call Dexie directly.
-- **No network calls.** No analytics, no external APIs, no CDN scripts.
+- **No network calls.** No analytics, no external APIs, no CDN scripts. Sole exception: `src/features/sync/sync.ts`, which does nothing unless `VITE_SYNC_URL` is set and then talks only to that URL.
 - Validate imported JSON with Zod before writing anything to the database.
 - Never delete a category that has transactions without reassigning or confirming.
 

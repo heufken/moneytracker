@@ -1,0 +1,9 @@
+name = "moneytracker-sync"
+main = "worker.js"
+compatibility_date = "2026-10-01"
+
+[[kv_namespaces]]
+binding = "BLOBS"
+# `wrangler dev` simulates KV locally, so this placeholder is fine for local testing.
+# Before `wrangler deploy`: run `npx wrangler kv namespace create BLOBS` and paste the real id here.
+id = "local-placeholder"

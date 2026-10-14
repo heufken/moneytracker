@@ -3,6 +3,7 @@ import { Moon, Sun } from "lucide-react";
 import { CategoriesManager } from "../categories/CategoriesManager";
 import { WalletsManager } from "../wallets/WalletsManager";
 import { BackupSection } from "../backup/BackupSection";
+import { SyncSection } from "../sync/SyncSection";
 import { getSetting, setSetting } from "../../db/api";
 import { cn } from "../../lib/utils";
 
@@ -84,6 +85,7 @@ export function SettingsPage() {
       <CategoriesManager />
       <WalletsManager />
       <BackupSection />
+      <SyncSection />
     </div>
   );
 }

@@ -5,12 +5,14 @@ import { TransactionsPage } from "./features/transactions/TransactionsPage";
 import { SettingsPage } from "./features/settings/SettingsPage";
 import { OverviewPage } from "./features/overview/OverviewPage";
 import { WalletOnboarding } from "./features/wallets/WalletOnboarding";
+import { SYNCED_EVENT } from "./features/sync/sync";
 import { getSetting, listTransactions, listWallets, setSetting } from "./db/api";
 import { cn } from "./lib/utils";
 
 function Layout() {
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [onboardedTick, setOnboardedTick] = useState(0);
+  const [syncTick, setSyncTick] = useState(0);
   const wide = useLocation().pathname === "/"; // Overview has charts + cards that use the room
 
   useEffect(() => {
@@ -27,11 +29,18 @@ function Layout() {
     return () => {
       cancelled = true;
     };
+  }, [syncTick]); // a pull can fill an empty db: re-decide whether onboarding is still needed
+
+  useEffect(() => {
+    // Sync pulled new data: remount the page (same trick as onboarding) so it re-reads the db.
+    const bump = () => setSyncTick((n) => n + 1);
+    window.addEventListener(SYNCED_EVENT, bump);
+    return () => window.removeEventListener(SYNCED_EVENT, bump);
   }, []);
 
   return (
     <div className={cn("mx-auto min-h-dvh max-w-lg px-[max(1rem,env(safe-area-inset-left))] pr-[max(1rem,env(safe-area-inset-right))] pb-[calc(6rem+env(safe-area-inset-bottom))] pt-[max(1.5rem,env(safe-area-inset-top))]", wide && "md:max-w-5xl")}>
-      <Outlet key={onboardedTick} />
+      <Outlet key={`${onboardedTick}-${syncTick}`} />
       <BottomNav />
       <WalletOnboarding
         open={showOnboarding}
